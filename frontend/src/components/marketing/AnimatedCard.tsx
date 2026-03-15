@@ -150,7 +150,7 @@ export default function AnimatedCard() {
               ) : (
                 <div key="result" className="flex flex-col items-center justify-center py-4 animate-fade-in">
                   <div
-                    className="w-20 h-20 rounded-2xl flex items-center justify-center mb-3"
+                    className="w-25 h-20 rounded-2xl flex items-center justify-center mb-3"
                     style={{ backgroundColor: C.violetGlow, border: `1px solid ${C.violetDim}` }}
                   >
                     <span className="text-3xl font-bold" style={gradientText}>80%</span>

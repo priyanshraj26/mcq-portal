@@ -83,7 +83,7 @@ const featureIcons = {
 };
 
 const features = [
-  { icon: featureIcons.document, title: 'Smart PDF Parsing', desc: 'Upload any standard PDF. Questions, options, and answers are detected automatically — anything uncertain is flagged for your review.' },
+  { icon: featureIcons.document, title: 'Smart PDF Parsing', desc: 'Upload any standard PDF. Questions, options, and answers are detected automatically; anything uncertain is flagged for your review.' },
   { icon: featureIcons.clock, title: 'Flexible Timing', desc: 'Set a timer for the full paper, each section, or individual questions. Mix and match to replicate any real exam format.' },
   { icon: featureIcons.layers, title: 'Multi-Section Support', desc: 'Upload multiple PDFs at once. Each becomes its own section with a separate question bank and optional time limit.' },
   { icon: featureIcons.chart, title: 'Performance Analysis', desc: 'After every test, see section accuracy, time per question, slowest responses, and scores with negative marking applied.' },
