@@ -75,76 +75,73 @@ export default function Calculator({ onClose }: Props) {
   const memRecall = () => { setDisplay(String(memory)); setWaitingForOperand(true); };
   const memClear = () => setMemory(0);
 
-  const Button = ({ label, onClick, className = '' }: { label: string; onClick: () => void; className?: string }) => (
-    <button
-      onClick={onClick}
-      className={`w-12 h-10 rounded-md text-sm font-medium transition-colors ${className}`}
-    >
-      {label}
-    </button>
-  );
+  const btnBase = 'w-12 h-10 rounded-md text-sm font-medium transition-colors';
+  const btnFunc = `${btnBase}`;
+  const btnDigit = `${btnBase}`;
+  const btnOp = `${btnBase} bg-violet-core/15 text-violet-bright hover:bg-violet-core/25`;
 
   return (
     <div
-      className="fixed top-20 right-8 bg-white border border-gray-300 rounded-xl shadow-2xl p-4 z-50"
-      style={{ width: '280px' }}
+      className="fixed top-20 right-8 rounded-xl shadow-2xl p-4 z-50"
+      style={{ width: '280px', backgroundColor: 'var(--exam-surface)', border: '1px solid var(--exam-border)' }}
     >
       <div className="flex justify-between items-center mb-3">
-        <span className="text-sm font-semibold text-gray-600">Calculator</span>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg font-bold">
+        <span className="text-sm font-semibold" style={{ color: 'var(--exam-text-secondary)' }}>Calculator</span>
+        <button onClick={onClose} className="text-lg font-bold" style={{ color: 'var(--exam-text-muted)' }}>
           &times;
         </button>
       </div>
 
       {/* Display */}
-      <div className="bg-gray-100 rounded-lg px-3 py-2 mb-3 text-right">
-        <div className="text-xl font-mono text-gray-900 truncate">{display}</div>
-        {memory !== 0 && <div className="text-xs text-gray-400">M: {memory}</div>}
+      <div className="rounded-lg px-3 py-2 mb-3 text-right" style={{ backgroundColor: 'var(--exam-btn-secondary-bg)' }}>
+        <div className="text-xl font-mono truncate" style={{ color: 'var(--exam-text-primary)' }}>{display}</div>
+        {memory !== 0 && <div className="text-xs" style={{ color: 'var(--exam-text-muted)' }}>M: {memory}</div>}
       </div>
 
       {/* Buttons */}
       <div className="grid grid-cols-5 gap-1">
-        <Button label="MC" onClick={memClear} className="bg-gray-100 text-gray-700 hover:bg-gray-200" />
-        <Button label="MR" onClick={memRecall} className="bg-gray-100 text-gray-700 hover:bg-gray-200" />
-        <Button label="M+" onClick={memAdd} className="bg-gray-100 text-gray-700 hover:bg-gray-200" />
-        <Button label="M-" onClick={memSub} className="bg-gray-100 text-gray-700 hover:bg-gray-200" />
-        <Button label="C" onClick={clear} className="bg-red-100 text-red-700 hover:bg-red-200" />
+        <button onClick={memClear} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>MC</button>
+        <button onClick={memRecall} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>MR</button>
+        <button onClick={memAdd} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>M+</button>
+        <button onClick={memSub} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>M-</button>
+        <button onClick={clear} className={`${btnBase} bg-red-500/15 text-red-400 hover:bg-red-500/25`}>C</button>
 
-        <Button label="x²" onClick={square} className="bg-gray-100 text-gray-700 hover:bg-gray-200" />
-        <Button label="√" onClick={sqrt} className="bg-gray-100 text-gray-700 hover:bg-gray-200" />
-        <Button label="%" onClick={percent} className="bg-gray-100 text-gray-700 hover:bg-gray-200" />
-        <Button label="±" onClick={negate} className="bg-gray-100 text-gray-700 hover:bg-gray-200" />
-        <Button label="÷" onClick={() => performOperation('/')} className="bg-blue-100 text-blue-700 hover:bg-blue-200" />
+        <button onClick={square} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>x&sup2;</button>
+        <button onClick={sqrt} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>&radic;</button>
+        <button onClick={percent} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>%</button>
+        <button onClick={negate} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>&plusmn;</button>
+        <button onClick={() => performOperation('/')} className={btnOp}>&divide;</button>
 
-        <Button label="7" onClick={() => inputDigit('7')} className="bg-white border hover:bg-gray-50" />
-        <Button label="8" onClick={() => inputDigit('8')} className="bg-white border hover:bg-gray-50" />
-        <Button label="9" onClick={() => inputDigit('9')} className="bg-white border hover:bg-gray-50" />
-        <Button label="×" onClick={() => performOperation('*')} className="bg-blue-100 text-blue-700 hover:bg-blue-200" />
-        <Button label="-" onClick={() => performOperation('-')} className="bg-blue-100 text-blue-700 hover:bg-blue-200" />
+        <button onClick={() => inputDigit('7')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>7</button>
+        <button onClick={() => inputDigit('8')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>8</button>
+        <button onClick={() => inputDigit('9')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>9</button>
+        <button onClick={() => performOperation('*')} className={btnOp}>&times;</button>
+        <button onClick={() => performOperation('-')} className={btnOp}>-</button>
 
-        <Button label="4" onClick={() => inputDigit('4')} className="bg-white border hover:bg-gray-50" />
-        <Button label="5" onClick={() => inputDigit('5')} className="bg-white border hover:bg-gray-50" />
-        <Button label="6" onClick={() => inputDigit('6')} className="bg-white border hover:bg-gray-50" />
-        <Button label="+" onClick={() => performOperation('+')} className="bg-blue-100 text-blue-700 hover:bg-blue-200" />
+        <button onClick={() => inputDigit('4')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>4</button>
+        <button onClick={() => inputDigit('5')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>5</button>
+        <button onClick={() => inputDigit('6')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>6</button>
+        <button onClick={() => performOperation('+')} className={btnOp}>+</button>
         <div className="row-span-2">
           <button
             onClick={calculate}
-            className="w-12 h-[84px] rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+            className="w-12 h-[84px] rounded-md text-sm font-medium bg-violet-core text-white hover:bg-violet-mid"
           >
             =
           </button>
         </div>
 
-        <Button label="1" onClick={() => inputDigit('1')} className="bg-white border hover:bg-gray-50" />
-        <Button label="2" onClick={() => inputDigit('2')} className="bg-white border hover:bg-gray-50" />
-        <Button label="3" onClick={() => inputDigit('3')} className="bg-white border hover:bg-gray-50" />
+        <button onClick={() => inputDigit('1')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>1</button>
+        <button onClick={() => inputDigit('2')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>2</button>
+        <button onClick={() => inputDigit('3')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>3</button>
         <button
           onClick={() => inputDigit('0')}
-          className="col-span-3 h-10 rounded-md text-sm font-medium bg-white border hover:bg-gray-50"
+          className="col-span-3 h-10 rounded-md text-sm font-medium"
+          style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}
         >
           0
         </button>
-        <Button label="." onClick={inputDecimal} className="bg-white border hover:bg-gray-50" />
+        <button onClick={inputDecimal} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>.</button>
       </div>
     </div>
   );

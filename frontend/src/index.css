@@ -1,12 +1,101 @@
 @import "tailwindcss";
 
+@theme {
+  --font-display: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --color-violet-dim: #3b3070;
+  --color-violet-mid: #6d56e8;
+  --color-violet-core: #7c68f0;
+  --color-violet-bright: #a594f9;
+
+  --color-bg-base: #0a0a0f;
+  --color-bg-surface: #111118;
+  --color-bg-elevated: #18181f;
+}
+
+:root {
+  /* Backgrounds */
+  --bg-base: #0a0a0f;
+  --bg-surface: #111118;
+  --bg-elevated: #18181f;
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+
+  /* Violet accent */
+  --violet-dim: #3b3070;
+  --violet-mid: #6d56e8;
+  --violet-core: #7c68f0;
+  --violet-bright: #a594f9;
+  --violet-glow: rgba(124, 104, 240, 0.18);
+  --violet-glow-strong: rgba(124, 104, 240, 0.30);
+
+  /* Text */
+  --text-primary: #f0eeff;
+  --text-secondary: #9490b0;
+  --text-muted: #5c5878;
+
+  /* Semantic */
+  --success: #4ade80;
+  --error: #f87171;
+  --warning: #fbbf24;
+}
+
+/* Exam Light Theme (default) */
+[data-exam-theme="light"] {
+  --exam-bg: #f8f9fc;
+  --exam-surface: #ffffff;
+  --exam-border: #e2e5ee;
+  --exam-text-primary: #1a1a2e;
+  --exam-text-secondary: #5a6080;
+  --exam-text-muted: #9499b5;
+  --exam-option-hover: #f3f2ff;
+  --exam-option-selected-bg: #ede9fe;
+  --exam-option-selected-border: #7c68f0;
+  --exam-header-bg: #ffffff;
+  --exam-header-border: #e2e5ee;
+  --exam-nav-bg: #f1f3f9;
+  --exam-btn-secondary-bg: #f1f3f9;
+  --exam-btn-secondary-text: #1a1a2e;
+}
+
+/* Exam Dark Theme */
+[data-exam-theme="dark"] {
+  --exam-bg: #0f0f16;
+  --exam-surface: #16161f;
+  --exam-border: rgba(255,255,255,0.09);
+  --exam-text-primary: #edeaff;
+  --exam-text-secondary: #8b87aa;
+  --exam-text-muted: #4d4a68;
+  --exam-option-hover: rgba(124, 104, 240, 0.08);
+  --exam-option-selected-bg: rgba(124, 104, 240, 0.15);
+  --exam-option-selected-border: #7c68f0;
+  --exam-header-bg: #13131a;
+  --exam-header-border: rgba(255,255,255,0.07);
+  --exam-nav-bg: #0f0f16;
+  --exam-btn-secondary-bg: rgba(255,255,255,0.06);
+  --exam-btn-secondary-text: #edeaff;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   min-height: 100vh;
+}
+
+/* Page transition */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter {
+  animation: fadeIn 0.25s ease forwards;
 }

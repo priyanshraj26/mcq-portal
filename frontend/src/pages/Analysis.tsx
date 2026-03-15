@@ -5,6 +5,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import toast from 'react-hot-toast';
+import { usePageTheme, ThemeToggle } from '../hooks/usePageTheme';
 
 interface QuestionResult {
   questionId: string;
@@ -61,7 +62,7 @@ interface AnalysisData {
   negativeMarkingEnabled: boolean;
 }
 
-const COLORS = ['#22c55e', '#ef4444', '#9ca3af'];
+const COLORS = ['#4ade80', '#f87171', '#6b7280'];
 
 function formatDuration(secs: number): string {
   const h = Math.floor(secs / 3600);
@@ -79,6 +80,8 @@ export default function Analysis() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'correct' | 'wrong' | 'skipped' | 'review'>('all');
 
+  const { isDark, t, toggleTheme } = usePageTheme('mcq-analysis-theme');
+
   useEffect(() => {
     if (!sessionId) return;
     (async () => {
@@ -93,10 +96,17 @@ export default function Analysis() {
     })();
   }, [sessionId]);
 
+  const cardStyle: React.CSSProperties = { backgroundColor: t.surface, border: `1px solid ${t.border}`, boxShadow: t.shadow };
+  const chartGridColor = isDark ? 'rgba(255,255,255,0.06)' : '#e5e7eb';
+  const chartTextColor = isDark ? '#8b87a8' : '#6b7280';
+  const tooltipStyle = isDark
+    ? { backgroundColor: '#1a1a28', border: '1px solid rgba(255,255,255,0.1)', color: '#eeecff' }
+    : undefined;
+
   if (loading || !analysis) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500 text-lg">Loading analysis...</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: t.bg }}>
+        <p style={{ color: t.textMut }}>Loading analysis...</p>
       </div>
     );
   }
@@ -122,19 +132,29 @@ export default function Analysis() {
     return true;
   });
 
+  const filterItems = [
+    { key: 'all' as const, label: 'All' },
+    { key: 'correct' as const, label: `Correct (${analysis.totalCorrect})` },
+    { key: 'wrong' as const, label: `Wrong (${analysis.totalWrong})` },
+    { key: 'skipped' as const, label: `Skipped (${analysis.totalSkipped})` },
+    { key: 'review' as const, label: `Marked for Review (${analysis.questions.filter(q => q.markedForReview).length})` },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ backgroundColor: t.bg }}>
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{analysis.examTitle}</h1>
-            <p className="text-gray-500">Exam Analysis</p>
+            <h1 className="text-3xl font-bold" style={{ color: t.text }}>{analysis.examTitle}</h1>
+            <p style={{ color: t.textMut }}>Exam Analysis</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
+            <ThemeToggle isDark={isDark} t={t} toggleTheme={toggleTheme} />
             <button
-              onClick={() => navigate('/')}
-              className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium"
+              onClick={() => navigate('/test')}
+              className="px-5 py-2.5 rounded-lg font-medium transition-colors"
+              style={{ backgroundColor: t.surfaceAlt, color: t.textSec, border: `1px solid ${t.border}` }}
             >
               Back to Home
             </button>
@@ -144,83 +164,76 @@ export default function Analysis() {
         {/* Summary Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Score Card */}
-          <div className="bg-white rounded-xl border p-6 col-span-2">
-            <h2 className="text-lg font-semibold mb-4">Score Summary</h2>
+          <div className="rounded-xl p-6 col-span-2" style={cardStyle}>
+            <h2 className="text-lg font-semibold mb-4" style={{ color: t.text }}>Score Summary</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-3xl font-bold text-blue-600">
+                <div className="text-3xl font-bold" style={{ color: '#7c68f0' }}>
                   {analysis.netScore} / {analysis.maxScore}
                 </div>
-                <div className="text-sm text-gray-500">Net Score</div>
+                <div className="text-sm" style={{ color: t.textMut }}>Net Score</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-800">{analysis.percentage}%</div>
-                <div className="text-sm text-gray-500">Percentage</div>
+                <div className="text-3xl font-bold" style={{ color: t.text }}>{analysis.percentage}%</div>
+                <div className="text-sm" style={{ color: t.textMut }}>Percentage</div>
               </div>
               <div className="text-center">
                 {analysis.passed !== null ? (
-                  <div className={`text-2xl font-bold ${analysis.passed ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className={`text-2xl font-bold ${analysis.passed ? 'text-green-400' : 'text-red-400'}`}>
                     {analysis.passed ? 'PASSED' : 'FAILED'}
                   </div>
                 ) : (
-                  <div className="text-2xl font-bold text-gray-400">--</div>
+                  <div className="text-2xl font-bold" style={{ color: t.textMut }}>--</div>
                 )}
-                <div className="text-sm text-gray-500">
+                <div className="text-sm" style={{ color: t.textMut }}>
                   {analysis.passingPercentage ? `Pass: ${analysis.passingPercentage}%` : 'No threshold'}
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-800">{formatDuration(analysis.timeTakenSecs)}</div>
-                <div className="text-sm text-gray-500">Time Taken</div>
+                <div className="text-2xl font-bold" style={{ color: t.text }}>{formatDuration(analysis.timeTakenSecs)}</div>
+                <div className="text-sm" style={{ color: t.textMut }}>Time Taken</div>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mt-6 pt-4 border-t">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mt-6 pt-4" style={{ borderTop: `1px solid ${t.border}` }}>
               <div className="text-center">
-                <div className="text-xl font-semibold text-green-600">{analysis.totalCorrect}</div>
-                <div className="text-xs text-gray-500">Correct</div>
+                <div className="text-xl font-semibold text-green-400">{analysis.totalCorrect}</div>
+                <div className="text-xs" style={{ color: t.textMut }}>Correct</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-semibold text-red-600">{analysis.totalWrong}</div>
-                <div className="text-xs text-gray-500">Wrong</div>
+                <div className="text-xl font-semibold text-red-400">{analysis.totalWrong}</div>
+                <div className="text-xs" style={{ color: t.textMut }}>Wrong</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-semibold text-gray-400">{analysis.totalSkipped}</div>
-                <div className="text-xs text-gray-500">Skipped</div>
+                <div className="text-xl font-semibold" style={{ color: t.textMut }}>{analysis.totalSkipped}</div>
+                <div className="text-xs" style={{ color: t.textMut }}>Skipped</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-semibold text-green-600">+{analysis.positiveMarks}</div>
-                <div className="text-xs text-gray-500">Positive</div>
+                <div className="text-xl font-semibold text-green-400">+{analysis.positiveMarks}</div>
+                <div className="text-xs" style={{ color: t.textMut }}>Positive</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-semibold text-red-600">-{analysis.negativeMarks}</div>
-                <div className="text-xs text-gray-500">Negative</div>
+                <div className="text-xl font-semibold text-red-400">-{analysis.negativeMarks}</div>
+                <div className="text-xs" style={{ color: t.textMut }}>Negative</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-semibold text-blue-600">{analysis.netScore}</div>
-                <div className="text-xs text-gray-500">Net</div>
+                <div className="text-xl font-semibold" style={{ color: '#7c68f0' }}>{analysis.netScore}</div>
+                <div className="text-xs" style={{ color: t.textMut }}>Net</div>
               </div>
             </div>
           </div>
 
           {/* Donut Chart */}
-          <div className="bg-white rounded-xl border p-6 flex flex-col items-center justify-center">
+          <div className="rounded-xl p-6 flex flex-col items-center justify-center" style={cardStyle}>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie
-                  data={donutData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={40}
-                  outerRadius={60}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value}`}
-                >
+                <Pie data={donutData} cx="50%" cy="50%" innerRadius={40} outerRadius={60} dataKey="value"
+                  label={({ name, value }) => `${name}: ${value}`} stroke="none">
                   {donutData.map((_, idx) => (
                     <Cell key={idx} fill={COLORS[idx]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip contentStyle={tooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -228,27 +241,24 @@ export default function Analysis() {
 
         {/* Section-wise Breakdown */}
         {analysis.sections.length > 1 && (
-          <div className="bg-white rounded-xl border p-6 mb-8">
-            <h2 className="text-lg font-semibold mb-4">Section-wise Performance</h2>
+          <div className="rounded-xl p-6 mb-8" style={cardStyle}>
+            <h2 className="text-lg font-semibold mb-4" style={{ color: t.text }}>Section-wise Performance</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 {analysis.sections.map((s) => (
-                  <div key={s.sectionId} className="border-b last:border-0 py-3">
+                  <div key={s.sectionId} className="py-3" style={{ borderBottom: `1px solid ${t.border}` }}>
                     <div className="flex justify-between items-center mb-1">
-                      <span className="font-medium text-gray-800">{s.sectionName}</span>
-                      <span className="text-sm text-gray-600">
+                      <span className="font-medium" style={{ color: t.text }}>{s.sectionName}</span>
+                      <span className="text-sm" style={{ color: t.textSec }}>
                         {s.correct}/{s.totalQuestions} ({Math.round(s.accuracy)}%)
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full transition-all"
-                        style={{ width: `${s.accuracy}%` }}
-                      />
+                    <div className="w-full rounded-full h-2" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#e5e7eb' }}>
+                      <div className="h-2 rounded-full transition-all" style={{ width: `${s.accuracy}%`, backgroundColor: '#7c68f0' }} />
                     </div>
-                    <div className="flex gap-4 text-xs text-gray-500 mt-1">
-                      <span className="text-green-600">{s.correct} correct</span>
-                      <span className="text-red-600">{s.wrong} wrong</span>
+                    <div className="flex gap-4 text-xs mt-1" style={{ color: t.textMut }}>
+                      <span className="text-green-400">{s.correct} correct</span>
+                      <span className="text-red-400">{s.wrong} wrong</span>
                       <span>{s.skipped} skipped</span>
                       <span>Avg: {Math.round(s.avgTimePerQuestion)}s/q</span>
                     </div>
@@ -258,12 +268,12 @@ export default function Analysis() {
               <div>
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={sectionBarData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" fontSize={12} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="correct" fill="#22c55e" name="Correct" />
-                    <Bar dataKey="wrong" fill="#ef4444" name="Wrong" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+                    <XAxis dataKey="name" fontSize={12} tick={{ fill: chartTextColor }} />
+                    <YAxis tick={{ fill: chartTextColor }} />
+                    <Tooltip contentStyle={tooltipStyle} />
+                    <Bar dataKey="correct" fill="#4ade80" name="Correct" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="wrong" fill="#f87171" name="Wrong" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -272,44 +282,41 @@ export default function Analysis() {
         )}
 
         {/* Time Analysis */}
-        <div className="bg-white rounded-xl border p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4">Time Analysis</h2>
+        <div className="rounded-xl p-6 mb-8" style={cardStyle}>
+          <h2 className="text-lg font-semibold mb-4" style={{ color: t.text }}>Time Analysis</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
             <div className="text-center">
-              <div className="text-xl font-semibold">{Math.round(analysis.timeAnalysis.avgTimePerQuestion)}s</div>
-              <div className="text-xs text-gray-500">Avg per Question</div>
+              <div className="text-xl font-semibold" style={{ color: t.text }}>{Math.round(analysis.timeAnalysis.avgTimePerQuestion)}s</div>
+              <div className="text-xs" style={{ color: t.textMut }}>Avg per Question</div>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={analysis.timeAnalysis.timeDistribution}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="range" fontSize={12} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="count" fill="#6366f1" name="Questions" />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartGridColor} />
+              <XAxis dataKey="range" fontSize={12} tick={{ fill: chartTextColor }} />
+              <YAxis tick={{ fill: chartTextColor }} />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Bar dataKey="count" fill="#7c68f0" name="Questions" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         {/* Question-by-Question Review */}
-        <div className="bg-white rounded-xl border p-6">
-          <h2 className="text-lg font-semibold mb-4">Question Review</h2>
+        <div className="rounded-xl p-6" style={cardStyle}>
+          <h2 className="text-lg font-semibold mb-4" style={{ color: t.text }}>Question Review</h2>
 
           {/* Filters */}
           <div className="flex gap-2 mb-6 flex-wrap">
-            {[
-              { key: 'all', label: 'All' },
-              { key: 'correct', label: `Correct (${analysis.totalCorrect})` },
-              { key: 'wrong', label: `Wrong (${analysis.totalWrong})` },
-              { key: 'skipped', label: `Skipped (${analysis.totalSkipped})` },
-              { key: 'review', label: `Marked for Review (${analysis.questions.filter(q => q.markedForReview).length})` },
-            ].map(({ key, label }) => (
+            {filterItems.map(({ key, label }) => (
               <button
                 key={key}
-                onClick={() => setFilter(key as typeof filter)}
-                className={`px-4 py-1.5 rounded-md text-sm font-medium ${
-                  filter === key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                onClick={() => setFilter(key)}
+                className="px-4 py-1.5 rounded-md text-sm font-medium transition-colors"
+                style={
+                  filter === key
+                    ? { backgroundColor: '#7c68f0', color: '#fff' }
+                    : { backgroundColor: t.surfaceAlt, color: t.textSec, border: `1px solid ${t.border}` }
+                }
               >
                 {label}
               </button>
@@ -319,51 +326,50 @@ export default function Analysis() {
           {/* Questions */}
           <div className="space-y-4">
             {filteredQuestions.map((q) => (
-              <div key={q.questionId} className="border rounded-lg p-4">
+              <div key={q.questionId} className="rounded-lg p-4" style={{ border: `1px solid ${t.border}` }}>
                 <div className="flex items-start justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-500">
+                  <span className="text-sm font-medium" style={{ color: t.textMut }}>
                     Q{q.questionNumber} &middot; {q.sectionName}
                     {q.markedForReview && (
-                      <span className="ml-2 text-purple-600">(Reviewed)</span>
+                      <span className="ml-2" style={{ color: '#a78bfa' }}>(Reviewed)</span>
                     )}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">{q.timeTakenSecs}s</span>
+                    <span className="text-xs" style={{ color: t.textMut }}>{q.timeTakenSecs}s</span>
                     {q.isCorrect && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Correct</span>
+                      <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: 'rgba(74,222,128,0.15)', color: '#4ade80' }}>Correct</span>
                     )}
                     {!q.isCorrect && !q.isSkipped && (
-                      <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">Wrong</span>
+                      <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: 'rgba(248,113,113,0.15)', color: '#f87171' }}>Wrong</span>
                     )}
                     {q.isSkipped && (
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Skipped</span>
+                      <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6', color: t.textMut }}>Skipped</span>
                     )}
                   </div>
                 </div>
 
-                <p className="text-gray-900 mb-3 whitespace-pre-wrap">{q.questionText}</p>
+                <p className="mb-3 whitespace-pre-wrap" style={{ color: t.text }}>{q.questionText}</p>
 
                 <div className="space-y-1.5">
                   {q.options.map((opt, idx) => {
                     const isCorrect = idx === q.correctAnswerIndex;
                     const isSelected = idx === q.selectedIndex;
-                    let bg = 'bg-gray-50';
-                    if (isCorrect) bg = 'bg-green-50 border border-green-200';
-                    else if (isSelected && !isCorrect) bg = 'bg-red-50 border border-red-200';
+
+                    let bgStyle: React.CSSProperties = { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f9fafb' };
+                    if (isCorrect) bgStyle = { backgroundColor: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)' };
+                    else if (isSelected && !isCorrect) bgStyle = { backgroundColor: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.25)' };
 
                     return (
-                      <div key={idx} className={`flex items-start gap-2 px-3 py-1.5 rounded ${bg}`}>
-                        <span className="font-medium text-sm w-6 text-gray-600">
+                      <div key={idx} className="flex items-start gap-2 px-3 py-1.5 rounded" style={bgStyle}>
+                        <span className="font-medium text-sm w-6" style={{ color: t.textMut }}>
                           {String.fromCharCode(65 + idx)}.
                         </span>
                         <span
-                          className={`text-sm ${
-                            isCorrect
-                              ? 'text-green-800 font-medium'
-                              : isSelected
-                                ? 'text-red-800'
-                                : 'text-gray-700'
-                          }`}
+                          className="text-sm"
+                          style={{
+                            color: isCorrect ? '#4ade80' : isSelected ? '#f87171' : t.textSec,
+                            fontWeight: isCorrect ? 500 : 400,
+                          }}
                         >
                           {opt}
                           {isCorrect && ' (Correct)'}

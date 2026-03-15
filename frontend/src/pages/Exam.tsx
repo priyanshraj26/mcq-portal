@@ -39,6 +39,16 @@ export default function Exam() {
   const questionStartTime = useRef(Date.now());
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Theme
+  const [examTheme, setExamTheme] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('mcq-exam-theme') as 'light' | 'dark') || 'light';
+  });
+  const toggleTheme = () => {
+    const next = examTheme === 'light' ? 'dark' : 'light';
+    setExamTheme(next);
+    localStorage.setItem('mcq-exam-theme', next);
+  };
+
   // Load session if navigating directly
   useEffect(() => {
     if (!sessionId && paramSessionId) {
@@ -53,7 +63,7 @@ export default function Exam() {
           });
         } catch {
           toast.error('Failed to load session');
-          navigate('/');
+          navigate('/test');
         }
       })();
     }
@@ -62,21 +72,15 @@ export default function Exam() {
   // Intercept browser back button
   useEffect(() => {
     if (!sessionId) return;
-
-    // Push a dummy state so we can detect back navigation
     window.history.pushState({ examGuard: true }, '');
-
     const handlePopState = () => {
       if (submittedRef.current) {
-        // Already submitted — go home
-        navigate('/', { replace: true });
+        navigate('/test', { replace: true });
       } else {
-        // Mid-exam — show leave warning, push state again to stay on page
         window.history.pushState({ examGuard: true }, '');
         setShowLeaveWarning(true);
       }
     };
-
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [sessionId, navigate]);
@@ -185,7 +189,7 @@ export default function Exam() {
 
   const handleLeaveExam = () => {
     store.reset();
-    navigate('/', { replace: true });
+    navigate('/test', { replace: true });
   };
 
   const handleTimeUp = useCallback(() => {
@@ -212,34 +216,58 @@ export default function Exam() {
 
   if (!sessionId || !currentSection || !currentQuestion || !startedAt) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500 text-lg">Loading exam...</p>
+      <div className="min-h-screen bg-[var(--exam-bg)] flex items-center justify-center" data-exam-theme={examTheme}>
+        <p className="text-[var(--exam-text-secondary)] text-lg font-body">Loading exam...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen flex flex-col font-body" data-exam-theme={examTheme} style={{ backgroundColor: 'var(--exam-bg)' }}>
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between shadow-sm">
-        <h1 className="text-lg font-semibold text-gray-900 truncate max-w-[300px]">{examTitle}</h1>
+      <header className="px-4 py-3 flex items-center justify-between shadow-sm" style={{ backgroundColor: 'var(--exam-header-bg)', borderBottom: '1px solid var(--exam-header-border)' }}>
+        <h1 className="text-lg font-semibold truncate max-w-[300px]" style={{ color: 'var(--exam-text-primary)' }}>{examTitle}</h1>
         <TimerBar
           startedAt={startedAt}
           totalTimeLimitSecs={settings?.totalTimeLimitSecs ?? null}
           onTimeUp={handleTimeUp}
         />
-        <button
-          onClick={() => setShowCalculator(!showCalculator)}
-          className="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium"
-          title="Calculator"
-        >
-          Calculator
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowCalculator(!showCalculator)}
+            className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+            style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-btn-secondary-text)', border: '1px solid var(--exam-border)' }}
+            title="Calculator"
+          >
+            Calculator
+          </button>
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+            style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', border: '1px solid var(--exam-border)' }}
+            title={examTheme === 'light' ? 'Dark mode' : 'Light mode'}
+          >
+            {examTheme === 'light' ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--exam-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--exam-text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="5" />
+                <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+              </svg>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Section tabs */}
       {sections.length > 1 && (
-        <div className="bg-white border-b px-4 py-2 flex gap-2 overflow-x-auto">
+        <div className="px-4 py-2 flex gap-2 overflow-x-auto" style={{ backgroundColor: 'var(--exam-header-bg)', borderBottom: '1px solid var(--exam-header-border)' }}>
           {sections.map((s, idx) => {
             const sAnswered = s.questions.filter(
               (q) => answers.get(q.id)?.selectedIndex !== null && answers.get(q.id)?.selectedIndex !== undefined
@@ -250,9 +278,10 @@ export default function Exam() {
                 onClick={() => (settings?.allowNavigation ?? true) && navigateTo(idx, 0)}
                 className={`px-4 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
                   idx === currentSectionIdx
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-violet-core text-white'
+                    : ''
                 }`}
+                style={idx !== currentSectionIdx ? { backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' } : undefined}
               >
                 {s.name} ({sAnswered}/{s.questions.length})
               </button>
@@ -267,14 +296,14 @@ export default function Exam() {
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="max-w-3xl">
             {/* Question header */}
-            <div className="text-sm text-gray-500 mb-2">
+            <div className="text-sm mb-2" style={{ color: 'var(--exam-text-secondary)' }}>
               {currentSection.name} &middot; Question {currentQuestionIdx + 1} of{' '}
               {currentSection.questions.length}
             </div>
 
             {/* Question text */}
-            <div className="bg-white rounded-lg border p-6 mb-4">
-              <h2 className="text-lg font-medium text-gray-900 whitespace-pre-wrap leading-relaxed">
+            <div className="rounded-lg p-6 mb-4" style={{ backgroundColor: 'var(--exam-surface)', border: '1px solid var(--exam-border)' }}>
+              <h2 className="text-lg font-medium whitespace-pre-wrap leading-relaxed" style={{ color: 'var(--exam-text-primary)' }}>
                 Q{globalQNum}. {currentQuestion.questionText}
               </h2>
             </div>
@@ -287,22 +316,23 @@ export default function Exam() {
                   <button
                     key={idx}
                     onClick={() => handleSelectOption(idx)}
-                    className={`w-full text-left p-4 rounded-lg border-2 transition-all flex items-start gap-3 ${
-                      isSelected
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
-                    }`}
+                    className="w-full text-left p-4 rounded-lg border-2 transition-all flex items-start gap-3"
+                    style={{
+                      backgroundColor: isSelected ? 'var(--exam-option-selected-bg)' : 'var(--exam-surface)',
+                      borderColor: isSelected ? 'var(--exam-option-selected-border)' : 'var(--exam-border)',
+                    }}
+                    onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--exam-option-hover)'; }}
+                    onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--exam-surface)'; }}
                   >
                     <span
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 ${
-                        isSelected
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-100 text-gray-600'
+                        isSelected ? 'bg-violet-core text-white' : ''
                       }`}
+                      style={!isSelected ? { backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' } : undefined}
                     >
                       {String.fromCharCode(65 + idx)}
                     </span>
-                    <span className="text-gray-800 pt-1">{opt}</span>
+                    <span className="pt-1" style={{ color: 'var(--exam-text-primary)' }}>{opt}</span>
                   </button>
                 );
               })}
@@ -316,8 +346,9 @@ export default function Exam() {
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   currentAnswer?.markedForReview
                     ? 'bg-purple-100 text-purple-700 border border-purple-300'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : ''
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
+                style={!currentAnswer?.markedForReview ? { backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-btn-secondary-text)', border: '1px solid var(--exam-border)' } : undefined}
               >
                 {currentAnswer?.markedForReview ? 'Marked for Review' : 'Mark for Review'}
               </button>
@@ -326,8 +357,9 @@ export default function Exam() {
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   currentAnswer?.isCompleted
                     ? 'bg-green-100 text-green-700 border border-green-300'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : ''
                 }`}
+                style={!currentAnswer?.isCompleted ? { backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-btn-secondary-text)', border: '1px solid var(--exam-border)' } : undefined}
               >
                 {currentAnswer?.isCompleted ? 'Completed' : 'Mark as Completed'}
               </button>
@@ -338,7 +370,8 @@ export default function Exam() {
               <button
                 onClick={prevQuestion}
                 disabled={currentSectionIdx === 0 && currentQuestionIdx === 0}
-                className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-6 py-2.5 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-btn-secondary-text)' }}
               >
                 Previous
               </button>
@@ -352,7 +385,7 @@ export default function Exam() {
               ) : (
                 <button
                   onClick={nextQuestion}
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-md transition-colors"
+                  className="px-6 py-2.5 bg-violet-core hover:bg-violet-mid text-white rounded-lg font-medium shadow-md transition-colors"
                 >
                   Next
                 </button>
@@ -362,7 +395,7 @@ export default function Exam() {
         </div>
 
         {/* Right panel - Navigation Grid */}
-        <div className="w-72 border-l bg-gray-50 p-4 overflow-y-auto hidden lg:block">
+        <div className="w-72 p-4 overflow-y-auto hidden lg:block" style={{ borderLeft: '1px solid var(--exam-border)', backgroundColor: 'var(--exam-nav-bg)' }}>
           <NavigationGrid
             sections={sections}
             currentSectionIdx={currentSectionIdx}
@@ -387,14 +420,14 @@ export default function Exam() {
       {/* Submit confirmation modal */}
       {showSubmitModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Submit Exam?</h3>
-            <div className="space-y-2 mb-6 text-sm text-gray-600">
+          <div className="rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl" style={{ backgroundColor: 'var(--exam-surface)', border: '1px solid var(--exam-border)' }}>
+            <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--exam-text-primary)' }}>Submit Exam?</h3>
+            <div className="space-y-2 mb-6 text-sm" style={{ color: 'var(--exam-text-secondary)' }}>
               <p>Answered: <strong>{answeredCount}</strong> / {totalQuestions}</p>
               <p>Not Answered: <strong>{totalQuestions - answeredCount}</strong></p>
               <p>Marked for Review: <strong>{markedCount}</strong></p>
               {totalQuestions - answeredCount > 0 && (
-                <p className="text-yellow-600 font-medium mt-2">
+                <p className="text-yellow-500 font-medium mt-2">
                   You have {totalQuestions - answeredCount} unanswered question(s)!
                 </p>
               )}
@@ -402,7 +435,8 @@ export default function Exam() {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowSubmitModal(false)}
-                className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium"
+                className="px-5 py-2.5 rounded-lg font-medium transition-colors"
+                style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-btn-secondary-text)' }}
               >
                 Continue Exam
               </button>
@@ -421,18 +455,18 @@ export default function Exam() {
       {/* Leave warning modal */}
       {showLeaveWarning && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Leave Exam?</h3>
-            <p className="text-gray-600 mb-2">
+          <div className="rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl" style={{ backgroundColor: 'var(--exam-surface)', border: '1px solid var(--exam-border)' }}>
+            <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--exam-text-primary)' }}>Leave Exam?</h3>
+            <p className="mb-2" style={{ color: 'var(--exam-text-secondary)' }}>
               If you leave now, your exam will <strong>not</strong> be submitted and your answers will be lost.
             </p>
-            <p className="text-red-600 text-sm font-medium mb-6">
+            <p className="text-red-500 text-sm font-medium mb-6">
               This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowLeaveWarning(false)}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold"
+                className="px-5 py-2.5 bg-violet-core hover:bg-violet-mid text-white rounded-lg font-semibold"
               >
                 Continue Exam
               </button>
@@ -450,9 +484,9 @@ export default function Exam() {
       {/* Time warning modal */}
       {showTimeWarning && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl text-center">
-            <div className="text-4xl mb-3">Time's Up!</div>
-            <p className="text-gray-600 mb-2">Your exam will be auto-submitted in 10 seconds.</p>
+          <div className="rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl text-center" style={{ backgroundColor: 'var(--exam-surface)', border: '1px solid var(--exam-border)' }}>
+            <div className="text-4xl mb-3" style={{ color: 'var(--exam-text-primary)' }}>Time's Up!</div>
+            <p style={{ color: 'var(--exam-text-secondary)' }}>Your exam will be auto-submitted in 10 seconds.</p>
           </div>
         </div>
       )}

@@ -38,14 +38,15 @@ export default function TimerBar({ startedAt, totalTimeLimitSecs, onTimeUp }: Pr
   const remaining = totalTimeLimitSecs ? Math.max(0, totalTimeLimitSecs - elapsed) : null;
   const percentRemaining = totalTimeLimitSecs ? (remaining! / totalTimeLimitSecs) * 100 : 100;
 
-  let timerColor = 'text-gray-800';
+  let colorClass = '';
+  let colorStyle: React.CSSProperties = { color: 'var(--exam-text-primary)' };
   if (totalTimeLimitSecs) {
-    if (percentRemaining <= 10) timerColor = 'text-red-600 animate-pulse';
-    else if (percentRemaining <= 20) timerColor = 'text-yellow-600';
+    if (percentRemaining <= 10) { colorClass = 'animate-pulse'; colorStyle = { color: '#ef4444' }; }
+    else if (percentRemaining <= 20) { colorStyle = { color: '#eab308' }; }
   }
 
   return (
-    <div className={`font-mono text-xl font-bold ${timerColor}`}>
+    <div className={`font-mono text-xl font-bold ${colorClass}`} style={colorStyle}>
       {remaining !== null ? formatTime(remaining) : formatTime(elapsed)}
     </div>
   );

@@ -7,17 +7,27 @@ interface Props {
   onDelete: () => void;
 }
 
+const getTheme = () => (localStorage.getItem('mcq-upload-theme') || 'dark') === 'dark';
+
 export default function QuestionPreview({ question, onUpdate, onDelete }: Props) {
   const [editing, setEditing] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [editQ, setEditQ] = useState(question);
 
-  const confidenceColor =
-    question.confidence >= 0.9
-      ? 'bg-green-100 text-green-700'
-      : question.confidence >= 0.75
-        ? 'bg-yellow-100 text-yellow-700'
-        : 'bg-red-100 text-red-700';
+  const dk = getTheme();
+  const surface = dk ? '#0e0e16' : '#ffffff';
+  const border = dk ? 'rgba(255,255,255,0.08)' : '#e2e5ee';
+  const text = dk ? '#eeecff' : '#1a1a2e';
+  const textSec = dk ? '#8b87a8' : '#5a6080';
+  const textMut = dk ? '#555270' : '#9499b5';
+  const inputBg = dk ? '#111119' : '#ffffff';
+  const inputBorder = dk ? 'rgba(255,255,255,0.10)' : '#e2e5ee';
+
+  const confidenceStyle = (): React.CSSProperties => {
+    if (question.confidence >= 0.9) return { backgroundColor: 'rgba(74,222,128,0.15)', color: '#4ade80' };
+    if (question.confidence >= 0.75) return { backgroundColor: 'rgba(251,191,36,0.15)', color: '#fbbf24' };
+    return { backgroundColor: 'rgba(248,113,113,0.15)', color: '#f87171' };
+  };
 
   const handleSave = () => {
     onUpdate({ ...editQ, confidence: 1.0, flags: [] });
@@ -31,13 +41,14 @@ export default function QuestionPreview({ question, onUpdate, onDelete }: Props)
 
   if (editing) {
     return (
-      <div className="bg-white border-2 border-blue-300 rounded-lg p-5 shadow-sm">
+      <div className="rounded-xl p-5" style={{ backgroundColor: surface, border: `2px solid #7c68f0` }}>
         <div className="mb-3">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Question Text</label>
+          <label className="block text-sm font-medium mb-1" style={{ color: textSec }}>Question Text</label>
           <textarea
             value={editQ.questionText}
             onChange={(e) => setEditQ({ ...editQ, questionText: e.target.value })}
-            className="w-full px-3 py-2 border rounded-md"
+            className="w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-core"
+            style={{ backgroundColor: inputBg, border: `1px solid ${inputBorder}`, color: text }}
             rows={3}
           />
         </div>
@@ -48,9 +59,9 @@ export default function QuestionPreview({ question, onUpdate, onDelete }: Props)
               type="radio"
               checked={editQ.correctAnswerIndex === idx}
               onChange={() => setEditQ({ ...editQ, correctAnswerIndex: idx })}
-              className="mt-0.5"
+              className="mt-0.5 accent-violet-core"
             />
-            <span className="text-sm font-medium w-6">{String.fromCharCode(65 + idx)}.</span>
+            <span className="text-sm font-medium w-6" style={{ color: textMut }}>{String.fromCharCode(65 + idx)}.</span>
             <input
               type="text"
               value={opt}
@@ -59,7 +70,8 @@ export default function QuestionPreview({ question, onUpdate, onDelete }: Props)
                 options[idx] = e.target.value;
                 setEditQ({ ...editQ, options });
               }}
-              className="flex-1 px-3 py-1.5 border rounded-md text-sm"
+              className="flex-1 px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-core"
+              style={{ backgroundColor: inputBg, border: `1px solid ${inputBorder}`, color: text }}
             />
           </div>
         ))}
@@ -67,13 +79,14 @@ export default function QuestionPreview({ question, onUpdate, onDelete }: Props)
         <div className="flex gap-2 mt-4">
           <button
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+            className="px-4 py-2 bg-violet-core text-white rounded-lg text-sm hover:bg-violet-mid"
           >
             Save
           </button>
           <button
             onClick={handleCancel}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm hover:bg-gray-300"
+            className="px-4 py-2 rounded-lg text-sm"
+            style={{ backgroundColor: dk ? 'rgba(255,255,255,0.06)' : '#e5e7eb', color: textSec }}
           >
             Cancel
           </button>
@@ -83,69 +96,61 @@ export default function QuestionPreview({ question, onUpdate, onDelete }: Props)
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-      {/* Collapsed header — always visible */}
+    <div className="rounded-xl transition-colors" style={{ backgroundColor: surface, border: `1px solid ${border}` }}>
+      {/* Collapsed header */}
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center justify-between p-4 text-left"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-semibold text-gray-500 shrink-0">Q{question.questionNumber}</span>
-          <span className={`text-xs px-2 py-0.5 rounded shrink-0 ${confidenceColor}`}>
+          <span className="text-sm font-semibold shrink-0" style={{ color: textMut }}>Q{question.questionNumber}</span>
+          <span className="text-xs px-2 py-0.5 rounded shrink-0" style={confidenceStyle()}>
             {Math.round(question.confidence * 100)}%
           </span>
           {question.flags.map((flag, i) => (
-            <span key={i} className="text-xs px-2 py-0.5 rounded bg-orange-100 text-orange-700 shrink-0">
+            <span key={i} className="text-xs px-2 py-0.5 rounded shrink-0" style={{ backgroundColor: 'rgba(251,191,36,0.15)', color: '#fbbf24' }}>
               {flag.replace(/_/g, ' ')}
             </span>
           ))}
-          <span className="text-sm text-gray-600 truncate ml-1">
-            {question.questionText.length > 80
-              ? question.questionText.slice(0, 80) + '...'
-              : question.questionText}
+          <span className="text-sm truncate ml-1" style={{ color: textSec }}>
+            {question.questionText.length > 80 ? question.questionText.slice(0, 80) + '...' : question.questionText}
           </span>
         </div>
-        <span className="text-gray-400 shrink-0 ml-2">{expanded ? '▲' : '▼'}</span>
+        <span className="shrink-0 ml-2" style={{ color: textMut }}>{expanded ? '▲' : '▼'}</span>
       </button>
 
-      {/* Expanded content */}
+      {/* Expanded */}
       {expanded && (
-        <div className="px-5 pb-5 border-t border-gray-100 pt-3">
+        <div className="px-5 pb-5 pt-3" style={{ borderTop: `1px solid ${border}` }}>
           <div className="flex justify-end gap-1 mb-3">
-            <button
-              onClick={(e) => { e.stopPropagation(); setEditing(true); }}
-              className="text-blue-600 hover:text-blue-800 text-sm px-2"
-            >
+            <button onClick={(e) => { e.stopPropagation(); setEditing(true); }} className="text-sm px-2" style={{ color: '#7c68f0' }}>
               Edit
             </button>
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="text-red-500 hover:text-red-700 text-sm px-2"
-            >
+            <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="text-sm px-2" style={{ color: '#f87171' }}>
               Delete
             </button>
           </div>
 
-          <p className="text-gray-900 mb-3 whitespace-pre-wrap">{question.questionText}</p>
+          <p className="mb-3 whitespace-pre-wrap" style={{ color: text }}>{question.questionText}</p>
 
           <div className="space-y-1.5">
-            {question.options.map((opt, idx) => (
-              <div
-                key={idx}
-                className={`flex items-start gap-2 px-3 py-1.5 rounded ${
-                  idx === question.correctAnswerIndex
-                    ? 'bg-green-50 border border-green-200'
-                    : 'bg-gray-50'
-                }`}
-              >
-                <span className="font-medium text-sm text-gray-600 min-w-[20px]">
-                  {String.fromCharCode(65 + idx)}.
-                </span>
-                <span className={`text-sm ${idx === question.correctAnswerIndex ? 'text-green-800 font-medium' : 'text-gray-700'}`}>
-                  {opt}
-                </span>
-              </div>
-            ))}
+            {question.options.map((opt, idx) => {
+              const isCorrect = idx === question.correctAnswerIndex;
+              const optStyle: React.CSSProperties = isCorrect
+                ? { backgroundColor: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.25)' }
+                : { backgroundColor: dk ? 'rgba(255,255,255,0.03)' : '#f9fafb' };
+
+              return (
+                <div key={idx} className="flex items-start gap-2 px-3 py-1.5 rounded-lg" style={optStyle}>
+                  <span className="font-medium text-sm min-w-[20px]" style={{ color: textMut }}>
+                    {String.fromCharCode(65 + idx)}.
+                  </span>
+                  <span className="text-sm" style={{ color: isCorrect ? '#4ade80' : textSec, fontWeight: isCorrect ? 500 : 400 }}>
+                    {opt}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
