@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getExams, deleteExam } from '../api/client';
+import { apiClient, deleteExam } from '../api/client';
 import toast from 'react-hot-toast';
 
 interface ExamSummary {
@@ -20,10 +20,28 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [exams, setExams] = useState<ExamSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isWakingUp, setIsWakingUp] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ExamSummary | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => { (async () => { try { setExams(await getExams()); } catch { toast.error('Failed to load exams'); } finally { setLoading(false); } })(); }, []);
+  useEffect(() => {
+    let wakeTimer: ReturnType<typeof setTimeout>;
+    const fetchExams = async () => {
+      wakeTimer = setTimeout(() => setIsWakingUp(true), 3000);
+      try {
+        const response = await apiClient.get('/exams');
+        setExams(response.data);
+      } catch {
+        toast.error('Failed to load exams');
+      } finally {
+        clearTimeout(wakeTimer);
+        setIsWakingUp(false);
+        setLoading(false);
+      }
+    };
+    fetchExams();
+    return () => clearTimeout(wakeTimer);
+  }, []);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -47,7 +65,17 @@ export default function Dashboard() {
 
         <div>
           {loading ? (
-            <div className="text-center py-10" style={{ color: V.textMut }}>Loading exams...</div>
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+              <div className="w-6 h-6 border-2 border-violet-core border-t-transparent rounded-full animate-spin" />
+              {isWakingUp ? (
+                <div className="text-center">
+                  <p className="font-medium" style={{ color: V.text }}>Starting the server...</p>
+                  <p className="text-sm mt-1" style={{ color: V.textSec }}>First load takes up to 60 seconds on the free tier.</p>
+                </div>
+              ) : (
+                <p className="text-sm" style={{ color: V.textSec }}>Loading...</p>
+              )}
+            </div>
           ) : exams.length === 0 ? (
             <div className="text-center py-10 rounded-xl" style={{ backgroundColor: V.surface, border: `1px solid ${V.border}`, color: V.textSec }}>
               <p className="text-lg">No exams yet. Upload a PDF to get started!</p>
