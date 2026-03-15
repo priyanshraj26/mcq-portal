@@ -52,7 +52,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="pt-20 pb-12 px-4 flex-1">
+    <div className="pt-20 pb-12 px-4 flex-1 force-dark">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold mb-2" style={{ color: V.text }}>Your Exams</h1>

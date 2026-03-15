@@ -62,6 +62,32 @@
   --t-chart-grid: #e5e7eb;
 }
 
+/* Force dark theme on specific containers (e.g. Dashboard inside MarketingLayout) */
+.force-dark {
+  --t-bg: #08080d;
+  --t-surface: #0e0e16;
+  --t-surface-alt: #111119;
+  --t-elevated: #1a1a28;
+  --t-border: rgba(255,255,255,0.08);
+  --t-border-strong: rgba(255,255,255,0.12);
+  --t-text: #eeecff;
+  --t-text-sec: #8b87a8;
+  --t-text-mut: #555270;
+  --t-input-bg: #111119;
+  --t-input-border: rgba(255,255,255,0.10);
+  --t-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --t-option-hover: rgba(124,104,240,0.08);
+  --t-option-sel-bg: rgba(124,104,240,0.15);
+  --t-option-sel-border: #7c68f0;
+  --t-btn-sec-bg: rgba(255,255,255,0.06);
+  --t-correct-bg: rgba(74,222,128,0.10);
+  --t-correct-border: rgba(74,222,128,0.25);
+  --t-wrong-bg: rgba(248,113,113,0.10);
+  --t-wrong-border: rgba(248,113,113,0.25);
+  --t-neutral-bg: rgba(255,255,255,0.03);
+  --t-chart-grid: rgba(255,255,255,0.06);
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
