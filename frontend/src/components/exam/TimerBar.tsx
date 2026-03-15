@@ -1,53 +1,33 @@
 import { useEffect, useState, useRef } from 'react';
 
-interface Props {
-  startedAt: Date;
-  totalTimeLimitSecs: number | null;
-  onTimeUp: () => void;
-}
+interface Props { startedAt: Date; totalTimeLimitSecs: number | null; onTimeUp: () => void; }
 
-function formatTime(secs: number): string {
-  const h = Math.floor(secs / 3600);
-  const m = Math.floor((secs % 3600) / 60);
-  const s = secs % 60;
-  if (h > 0) {
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  }
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+function fmt(secs: number): string {
+  const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+  const p = (n: number) => n.toString().padStart(2, '0');
+  return h > 0 ? `${p(h)}:${p(m)}:${p(s)}` : `${p(m)}:${p(s)}`;
 }
 
 export default function TimerBar({ startedAt, totalTimeLimitSecs, onTimeUp }: Props) {
   const [elapsed, setElapsed] = useState(0);
-  const timeUpCalled = useRef(false);
+  const called = useRef(false);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const e = Math.floor((now - startedAt.getTime()) / 1000);
+    const iv = setInterval(() => {
+      const e = Math.floor((Date.now() - startedAt.getTime()) / 1000);
       setElapsed(e);
-
-      if (totalTimeLimitSecs && e >= totalTimeLimitSecs && !timeUpCalled.current) {
-        timeUpCalled.current = true;
-        onTimeUp();
-      }
+      if (totalTimeLimitSecs && e >= totalTimeLimitSecs && !called.current) { called.current = true; onTimeUp(); }
     }, 1000);
-
-    return () => clearInterval(interval);
+    return () => clearInterval(iv);
   }, [startedAt, totalTimeLimitSecs, onTimeUp]);
 
-  const remaining = totalTimeLimitSecs ? Math.max(0, totalTimeLimitSecs - elapsed) : null;
-  const percentRemaining = totalTimeLimitSecs ? (remaining! / totalTimeLimitSecs) * 100 : 100;
-
-  let colorClass = '';
-  let colorStyle: React.CSSProperties = { color: 'var(--exam-text-primary)' };
-  if (totalTimeLimitSecs) {
-    if (percentRemaining <= 10) { colorClass = 'animate-pulse'; colorStyle = { color: '#ef4444' }; }
-    else if (percentRemaining <= 20) { colorStyle = { color: '#eab308' }; }
-  }
+  const rem = totalTimeLimitSecs ? Math.max(0, totalTimeLimitSecs - elapsed) : null;
+  const pct = totalTimeLimitSecs ? (rem! / totalTimeLimitSecs) * 100 : 100;
+  const color = totalTimeLimitSecs ? (pct <= 10 ? '#ef4444' : pct <= 20 ? '#eab308' : 'var(--t-text)') : 'var(--t-text)';
 
   return (
-    <div className={`font-mono text-xl font-bold ${colorClass}`} style={colorStyle}>
-      {remaining !== null ? formatTime(remaining) : formatTime(elapsed)}
+    <div className={`font-mono text-xl font-bold ${totalTimeLimitSecs && pct <= 10 ? 'animate-pulse' : ''}`} style={{ color }}>
+      {rem !== null ? fmt(rem) : fmt(elapsed)}
     </div>
   );
 }

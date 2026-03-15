@@ -1,147 +1,68 @@
 import { useState } from 'react';
 
-interface Props {
-  onClose: () => void;
-}
+const V = { surface: 'var(--t-surface)', border: 'var(--t-border)', text: 'var(--t-text)', textSec: 'var(--t-text-sec)', textMut: 'var(--t-text-mut)', btnSecBg: 'var(--t-btn-sec-bg)' };
+const btnBase = 'w-12 h-10 rounded-md text-sm font-medium transition-colors';
 
-export default function Calculator({ onClose }: Props) {
+export default function Calculator({ onClose }: { onClose: () => void }) {
   const [display, setDisplay] = useState('0');
   const [memory, setMemory] = useState(0);
-  const [waitingForOperand, setWaitingForOperand] = useState(false);
-  const [operator, setOperator] = useState<string | null>(null);
-  const [previousValue, setPreviousValue] = useState<number | null>(null);
+  const [waiting, setWaiting] = useState(false);
+  const [op, setOp] = useState<string | null>(null);
+  const [prev, setPrev] = useState<number | null>(null);
 
-  const inputDigit = (digit: string) => {
-    if (waitingForOperand) {
-      setDisplay(digit);
-      setWaitingForOperand(false);
-    } else {
-      setDisplay(display === '0' ? digit : display + digit);
-    }
+  const digit = (d: string) => { if (waiting) { setDisplay(d); setWaiting(false); } else setDisplay(display === '0' ? d : display + d); };
+  const decimal = () => { if (waiting) { setDisplay('0.'); setWaiting(false); return; } if (!display.includes('.')) setDisplay(display + '.'); };
+  const clear = () => { setDisplay('0'); setOp(null); setPrev(null); setWaiting(false); };
+
+  const perform = (nextOp: string) => {
+    const cur = parseFloat(display);
+    if (prev !== null && op) {
+      let r = prev;
+      if (op === '+') r = prev + cur; else if (op === '-') r = prev - cur; else if (op === '*') r = prev * cur; else if (op === '/') r = cur !== 0 ? prev / cur : 0;
+      setDisplay(String(r)); setPrev(r);
+    } else setPrev(cur);
+    setOp(nextOp); setWaiting(true);
   };
 
-  const inputDecimal = () => {
-    if (waitingForOperand) {
-      setDisplay('0.');
-      setWaitingForOperand(false);
-      return;
-    }
-    if (!display.includes('.')) {
-      setDisplay(display + '.');
-    }
-  };
+  const calc = () => { if (!op || prev === null) return; perform('='); setOp(null); setPrev(null); };
 
-  const clear = () => {
-    setDisplay('0');
-    setOperator(null);
-    setPreviousValue(null);
-    setWaitingForOperand(false);
-  };
-
-  const performOperation = (nextOp: string) => {
-    const current = parseFloat(display);
-
-    if (previousValue !== null && operator) {
-      let result = previousValue;
-      switch (operator) {
-        case '+': result = previousValue + current; break;
-        case '-': result = previousValue - current; break;
-        case '*': result = previousValue * current; break;
-        case '/': result = current !== 0 ? previousValue / current : 0; break;
-      }
-      setDisplay(String(result));
-      setPreviousValue(result);
-    } else {
-      setPreviousValue(current);
-    }
-
-    setOperator(nextOp);
-    setWaitingForOperand(true);
-  };
-
-  const calculate = () => {
-    if (!operator || previousValue === null) return;
-    performOperation('=');
-    setOperator(null);
-    setPreviousValue(null);
-  };
-
-  const percent = () => setDisplay(String(parseFloat(display) / 100));
-  const sqrt = () => setDisplay(String(Math.sqrt(parseFloat(display))));
-  const square = () => setDisplay(String(Math.pow(parseFloat(display), 2)));
-  const negate = () => setDisplay(String(-parseFloat(display)));
-  const memAdd = () => setMemory(memory + parseFloat(display));
-  const memSub = () => setMemory(memory - parseFloat(display));
-  const memRecall = () => { setDisplay(String(memory)); setWaitingForOperand(true); };
-  const memClear = () => setMemory(0);
-
-  const btnBase = 'w-12 h-10 rounded-md text-sm font-medium transition-colors';
-  const btnFunc = `${btnBase}`;
-  const btnDigit = `${btnBase}`;
-  const btnOp = `${btnBase} bg-violet-core/15 text-violet-bright hover:bg-violet-core/25`;
+  const fnStyle: React.CSSProperties = { backgroundColor: V.btnSecBg, color: V.textSec };
+  const numStyle: React.CSSProperties = { backgroundColor: V.surface, color: V.text, border: `1px solid ${V.border}` };
 
   return (
-    <div
-      className="fixed top-20 right-8 rounded-xl shadow-2xl p-4 z-50"
-      style={{ width: '280px', backgroundColor: 'var(--exam-surface)', border: '1px solid var(--exam-border)' }}
-    >
+    <div className="fixed top-20 right-8 rounded-xl shadow-2xl p-4 z-50" style={{ width: 280, backgroundColor: V.surface, border: `1px solid ${V.border}` }}>
       <div className="flex justify-between items-center mb-3">
-        <span className="text-sm font-semibold" style={{ color: 'var(--exam-text-secondary)' }}>Calculator</span>
-        <button onClick={onClose} className="text-lg font-bold" style={{ color: 'var(--exam-text-muted)' }}>
-          &times;
-        </button>
+        <span className="text-sm font-semibold" style={{ color: V.textSec }}>Calculator</span>
+        <button onClick={onClose} className="text-lg font-bold" style={{ color: V.textMut }}>&times;</button>
       </div>
-
-      {/* Display */}
-      <div className="rounded-lg px-3 py-2 mb-3 text-right" style={{ backgroundColor: 'var(--exam-btn-secondary-bg)' }}>
-        <div className="text-xl font-mono truncate" style={{ color: 'var(--exam-text-primary)' }}>{display}</div>
-        {memory !== 0 && <div className="text-xs" style={{ color: 'var(--exam-text-muted)' }}>M: {memory}</div>}
+      <div className="rounded-lg px-3 py-2 mb-3 text-right" style={{ backgroundColor: V.btnSecBg }}>
+        <div className="text-xl font-mono truncate" style={{ color: V.text }}>{display}</div>
+        {memory !== 0 && <div className="text-xs" style={{ color: V.textMut }}>M: {memory}</div>}
       </div>
-
-      {/* Buttons */}
       <div className="grid grid-cols-5 gap-1">
-        <button onClick={memClear} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>MC</button>
-        <button onClick={memRecall} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>MR</button>
-        <button onClick={memAdd} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>M+</button>
-        <button onClick={memSub} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>M-</button>
+        <button onClick={() => setMemory(0)} className={btnBase} style={fnStyle}>MC</button>
+        <button onClick={() => { setDisplay(String(memory)); setWaiting(true); }} className={btnBase} style={fnStyle}>MR</button>
+        <button onClick={() => setMemory(memory + parseFloat(display))} className={btnBase} style={fnStyle}>M+</button>
+        <button onClick={() => setMemory(memory - parseFloat(display))} className={btnBase} style={fnStyle}>M-</button>
         <button onClick={clear} className={`${btnBase} bg-red-500/15 text-red-400 hover:bg-red-500/25`}>C</button>
 
-        <button onClick={square} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>x&sup2;</button>
-        <button onClick={sqrt} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>&radic;</button>
-        <button onClick={percent} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>%</button>
-        <button onClick={negate} className={btnFunc} style={{ backgroundColor: 'var(--exam-btn-secondary-bg)', color: 'var(--exam-text-secondary)' }}>&plusmn;</button>
-        <button onClick={() => performOperation('/')} className={btnOp}>&divide;</button>
+        <button onClick={() => setDisplay(String(Math.pow(parseFloat(display), 2)))} className={btnBase} style={fnStyle}>x&sup2;</button>
+        <button onClick={() => setDisplay(String(Math.sqrt(parseFloat(display))))} className={btnBase} style={fnStyle}>&radic;</button>
+        <button onClick={() => setDisplay(String(parseFloat(display) / 100))} className={btnBase} style={fnStyle}>%</button>
+        <button onClick={() => setDisplay(String(-parseFloat(display)))} className={btnBase} style={fnStyle}>&plusmn;</button>
+        <button onClick={() => perform('/')} className={`${btnBase} bg-violet-core/15 text-violet-bright hover:bg-violet-core/25`}>&divide;</button>
 
-        <button onClick={() => inputDigit('7')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>7</button>
-        <button onClick={() => inputDigit('8')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>8</button>
-        <button onClick={() => inputDigit('9')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>9</button>
-        <button onClick={() => performOperation('*')} className={btnOp}>&times;</button>
-        <button onClick={() => performOperation('-')} className={btnOp}>-</button>
+        {['7','8','9'].map(d => <button key={d} onClick={() => digit(d)} className={btnBase} style={numStyle}>{d}</button>)}
+        <button onClick={() => perform('*')} className={`${btnBase} bg-violet-core/15 text-violet-bright hover:bg-violet-core/25`}>&times;</button>
+        <button onClick={() => perform('-')} className={`${btnBase} bg-violet-core/15 text-violet-bright hover:bg-violet-core/25`}>-</button>
 
-        <button onClick={() => inputDigit('4')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>4</button>
-        <button onClick={() => inputDigit('5')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>5</button>
-        <button onClick={() => inputDigit('6')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>6</button>
-        <button onClick={() => performOperation('+')} className={btnOp}>+</button>
-        <div className="row-span-2">
-          <button
-            onClick={calculate}
-            className="w-12 h-[84px] rounded-md text-sm font-medium bg-violet-core text-white hover:bg-violet-mid"
-          >
-            =
-          </button>
-        </div>
+        {['4','5','6'].map(d => <button key={d} onClick={() => digit(d)} className={btnBase} style={numStyle}>{d}</button>)}
+        <button onClick={() => perform('+')} className={`${btnBase} bg-violet-core/15 text-violet-bright hover:bg-violet-core/25`}>+</button>
+        <div className="row-span-2"><button onClick={calc} className="w-12 h-[84px] rounded-md text-sm font-medium bg-violet-core text-white hover:bg-violet-mid">=</button></div>
 
-        <button onClick={() => inputDigit('1')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>1</button>
-        <button onClick={() => inputDigit('2')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>2</button>
-        <button onClick={() => inputDigit('3')} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>3</button>
-        <button
-          onClick={() => inputDigit('0')}
-          className="col-span-3 h-10 rounded-md text-sm font-medium"
-          style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}
-        >
-          0
-        </button>
-        <button onClick={inputDecimal} className={btnDigit} style={{ backgroundColor: 'var(--exam-surface)', color: 'var(--exam-text-primary)', border: '1px solid var(--exam-border)' }}>.</button>
+        {['1','2','3'].map(d => <button key={d} onClick={() => digit(d)} className={btnBase} style={numStyle}>{d}</button>)}
+        <button onClick={() => digit('0')} className="col-span-3 h-10 rounded-md text-sm font-medium" style={numStyle}>0</button>
+        <button onClick={decimal} className={btnBase} style={numStyle}>.</button>
       </div>
     </div>
   );
