@@ -34,6 +34,8 @@ export default function Exam() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showTimeWarning, setShowTimeWarning] = useState(false);
+  const [showLeaveWarning, setShowLeaveWarning] = useState(false);
+  const submittedRef = useRef(false);
   const questionStartTime = useRef(Date.now());
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -56,6 +58,40 @@ export default function Exam() {
       })();
     }
   }, [paramSessionId, sessionId, initSession, navigate]);
+
+  // Intercept browser back button
+  useEffect(() => {
+    if (!sessionId) return;
+
+    // Push a dummy state so we can detect back navigation
+    window.history.pushState({ examGuard: true }, '');
+
+    const handlePopState = () => {
+      if (submittedRef.current) {
+        // Already submitted — go home
+        navigate('/', { replace: true });
+      } else {
+        // Mid-exam — show leave warning, push state again to stay on page
+        window.history.pushState({ examGuard: true }, '');
+        setShowLeaveWarning(true);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [sessionId, navigate]);
+
+  // Warn on tab/window close during exam
+  useEffect(() => {
+    if (!sessionId) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!submittedRef.current) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [sessionId]);
 
   const currentSection = sections[currentSectionIdx];
   const currentQuestion = currentSection?.questions[currentQuestionIdx];
@@ -131,8 +167,11 @@ export default function Exam() {
     setSubmitting(true);
     try {
       await submitSession(sessionId);
+      submittedRef.current = true;
+      const sid = sessionId;
+      store.reset();
       toast.success('Exam submitted!');
-      navigate(`/analysis/${sessionId}`);
+      navigate(`/analysis/${sid}`, { replace: true });
     } catch {
       toast.error('Failed to submit exam');
     } finally {
@@ -143,6 +182,11 @@ export default function Exam() {
 
   const handleSubmitRef = useRef(handleSubmit);
   handleSubmitRef.current = handleSubmit;
+
+  const handleLeaveExam = () => {
+    store.reset();
+    navigate('/', { replace: true });
+  };
 
   const handleTimeUp = useCallback(() => {
     setShowTimeWarning(true);
@@ -368,6 +412,35 @@ export default function Exam() {
                 className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold disabled:opacity-50"
               >
                 {submitting ? 'Submitting...' : 'Confirm Submit'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Leave warning modal */}
+      {showLeaveWarning && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Leave Exam?</h3>
+            <p className="text-gray-600 mb-2">
+              If you leave now, your exam will <strong>not</strong> be submitted and your answers will be lost.
+            </p>
+            <p className="text-red-600 text-sm font-medium mb-6">
+              This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowLeaveWarning(false)}
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold"
+              >
+                Continue Exam
+              </button>
+              <button
+                onClick={handleLeaveExam}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium"
+              >
+                Leave Exam
               </button>
             </div>
           </div>

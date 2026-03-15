@@ -211,8 +211,8 @@ export default function Analysis() {
                   data={donutData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={55}
-                  outerRadius={80}
+                  innerRadius={40}
+                  outerRadius={60}
                   dataKey="value"
                   label={({ name, value }) => `${name}: ${value}`}
                 >

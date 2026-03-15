@@ -17,6 +17,8 @@ export default function Home() {
   const navigate = useNavigate();
   const [exams, setExams] = useState<ExamSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<ExamSummary | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchExams = async () => {
     try {
@@ -33,14 +35,18 @@ export default function Home() {
     fetchExams();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this exam?')) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await deleteExam(id);
-      setExams((prev) => prev.filter((e) => e.id !== id));
+      await deleteExam(deleteTarget.id);
+      setExams((prev) => prev.filter((e) => e.id !== deleteTarget.id));
       toast.success('Exam deleted');
     } catch {
       toast.error('Failed to delete exam');
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -110,7 +116,7 @@ export default function Home() {
                       </button>
                     )}
                     <button
-                      onClick={() => handleDelete(exam.id)}
+                      onClick={() => setDeleteTarget(exam)}
                       className="px-4 py-2 text-sm bg-red-100 hover:bg-red-200 rounded-md text-red-700 transition-colors"
                     >
                       Delete
@@ -122,6 +128,36 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Delete Exam?</h3>
+            <p className="text-gray-600 mb-1">
+              Are you sure you want to delete <strong>{deleteTarget.title}</strong>?
+            </p>
+            <p className="text-sm text-red-600 mb-6">
+              This will permanently delete the exam, all questions, sessions, and analysis data.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Delete Exam'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
