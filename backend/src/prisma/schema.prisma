@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Exam {
+  id        String        @id @default(uuid())
+  title     String
+  createdAt DateTime      @default(now())
+  sections  Section[]
+  settings  ExamSettings?
+  sessions  ExamSession[]
+}
+
+model Section {
+  id            String     @id @default(uuid())
+  examId        String
+  exam          Exam       @relation(fields: [examId], references: [id], onDelete: Cascade)
+  name          String
+  order         Int
+  timeLimitSecs Int?
+  questions     Question[]
+}
+
+model Question {
+  id                 String   @id @default(uuid())
+  sectionId          String
+  section            Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  order              Int
+  questionText       String
+  options            Json     // string[]
+  correctAnswerIndex Int
+  rawPdfText         String?
+  confidence         Float    @default(1.0)
+  answers            Answer[]
+}
+
+model ExamSettings {
+  id                    String  @id @default(uuid())
+  examId                String  @unique
+  exam                  Exam    @relation(fields: [examId], references: [id], onDelete: Cascade)
+  totalTimeLimitSecs    Int?
+  perQuestionTimeSecs   Int?
+  allowNavigation       Boolean @default(true)
+  shuffleQuestions      Boolean @default(false)
+  shuffleOptions        Boolean @default(false)
+  negativeMarking       Boolean @default(false)
+  negativeMarkValue     Float   @default(0.25)
+  marksPerCorrect       Float   @default(1.0)
+  passingPercentage     Float?
+  showResultImmediately Boolean @default(true)
+}
+
+model ExamSession {
+  id            String        @id @default(uuid())
+  examId        String
+  exam          Exam          @relation(fields: [examId], references: [id], onDelete: Cascade)
+  startedAt     DateTime      @default(now())
+  submittedAt   DateTime?
+  timeTakenSecs Int?
+  answers       Answer[]
+  status        SessionStatus @default(IN_PROGRESS)
+}
+
+enum SessionStatus {
+  IN_PROGRESS
+  SUBMITTED
+  ABANDONED
+}
+
+model Answer {
+  id              String      @id @default(uuid())
+  sessionId       String
+  session         ExamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId      String
+  question        Question    @relation(fields: [questionId], references: [id])
+  selectedIndex   Int?
+  markedForReview Boolean     @default(false)
+  isCompleted     Boolean     @default(false)
+  timeTakenSecs   Int?
+  visitCount      Int         @default(0)
+}
