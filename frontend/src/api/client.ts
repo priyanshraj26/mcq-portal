@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-const api = axios.create({
+export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
 });
+const api = apiClient;
 
 // Upload APIs
 export const uploadPdfs = async (files: File[]) => {
