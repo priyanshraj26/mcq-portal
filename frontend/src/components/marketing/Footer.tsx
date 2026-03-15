@@ -4,9 +4,12 @@ export default function Footer() {
   return (
     <footer className="py-10" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center md:items-start justify-between gap-6">
-        <div className="text-center md:text-left">
-          <span style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, color: '#f0eeff' }}>MCQ Portal</span>
-          <p className="text-sm mt-1" style={{ color: '#5c5878' }}>Focused exam practice.</p>
+        <div className="flex items-center gap-3">
+          <img src="/MCQ Portal.png" alt="MCQ Portal" className="w-7 h-7" />
+          <div>
+            <span className="font-semibold" style={{ color: '#f0eeff' }}>MCQ Portal</span>
+            <p className="text-sm mt-0.1" style={{ color: '#5c5878' }}>Focused exam practice.</p>
+          </div>
         </div>
 
         <div className="flex gap-6">
@@ -18,7 +21,7 @@ export default function Footer() {
           </Link>
         </div>
 
-        <p className="text-xs" style={{ color: '#5c5878' }}>&copy; 2025 MCQ Portal</p>
+        <p className="text-xs" style={{ color: '#5c5878' }}>&copy; 2026 MCQ Portal</p>
       </div>
     </footer>
   );

@@ -9,6 +9,7 @@ datasource db {
 
 model Exam {
   id        String        @id @default(uuid())
+  userId    String
   title     String
   createdAt DateTime      @default(now())
   sections  Section[]
@@ -59,6 +60,7 @@ model ExamSession {
   id            String        @id @default(uuid())
   examId        String
   exam          Exam          @relation(fields: [examId], references: [id], onDelete: Cascade)
+  userId        String
   startedAt     DateTime      @default(now())
   submittedAt   DateTime?
   timeTakenSecs Int?

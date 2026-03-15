@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { SignedIn, UserButton } from '@clerk/clerk-react';
 
 const navItems = [
   { label: 'Test', to: '/test' },
@@ -25,7 +26,12 @@ export default function Navbar() {
   const isActive = (to: string) => location.pathname === to;
 
   return (
-    <div ref={menuRef} className="fixed top-0 left-0 right-0 z-50 flex justify-center pt-4 pointer-events-none">
+    <div ref={menuRef} className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-3 pt-4 pointer-events-none">
+      {/* Logo */}
+      <Link to="/" className="hidden md:block pointer-events-auto">
+        <img src="/MCQ Portal.png" alt="MCQ Portal" className="w-7 h-7" />
+      </Link>
+
       {/* Desktop pill */}
       <nav
         className="hidden md:flex items-center rounded-full px-1.5 py-1.5 pointer-events-auto"
@@ -83,6 +89,13 @@ export default function Navbar() {
           )
         )}
       </nav>
+
+      {/* User avatar (signed in) */}
+      <SignedIn>
+        <div className="hidden md:block pointer-events-auto">
+          <UserButton afterSignOutUrl="/" />
+        </div>
+      </SignedIn>
 
       {/* Mobile hamburger */}
       <div className="md:hidden pointer-events-auto flex flex-col items-center">
