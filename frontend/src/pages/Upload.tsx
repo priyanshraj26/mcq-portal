@@ -74,11 +74,11 @@ export default function Upload() {
           </div>
           <h1 className="text-3xl font-bold mb-6" style={{ color: V.text }}>Upload PDFs</h1>
 
-          <div {...getRootProps()} className="border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors"
+          <div {...getRootProps()} className="border-2 border-dashed rounded-xl p-6 sm:p-12 text-center cursor-pointer transition-colors"
             style={{ borderColor: isDragActive ? '#7c68f0' : V.border, backgroundColor: isDragActive ? 'var(--t-option-hover)' : V.surface }}>
             <input {...getInputProps()} />
-            <div className="text-5xl mb-4">📄</div>
-            <p className="text-lg" style={{ color: V.textSec }}>{isDragActive ? 'Drop PDF files here...' : 'Drag & drop PDF files here, or click to browse'}</p>
+            <div className="text-3xl sm:text-5xl mb-4">📄</div>
+            <p className="text-base sm:text-lg" style={{ color: V.textSec }}>{isDragActive ? 'Drop PDF files here...' : 'Drag & drop PDF files here, or click to browse'}</p>
             <p className="text-sm mt-2" style={{ color: V.textMut }}>Each PDF will become a separate section</p>
           </div>
 

@@ -60,7 +60,7 @@ export default function Dashboard() {
         </div>
 
         <div className="flex justify-center mb-10">
-          <button onClick={() => navigate('/upload')} className="bg-violet-core hover:bg-violet-mid text-white font-semibold px-8 py-3 rounded-lg text-lg shadow-md transition-colors">+ Create New Exam</button>
+          <button onClick={() => navigate('/upload')} className="bg-violet-core hover:bg-violet-mid text-white font-semibold px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg text-base sm:text-lg shadow-md transition-colors">+ Create New Exam</button>
         </div>
 
         <div>
@@ -98,7 +98,7 @@ export default function Dashboard() {
                       <span className="inline-block mt-1.5 text-xs px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--t-correct-bg)', color: '#4ade80' }}>Completed</span>
                     )}
                   </div>
-                  <div className="flex gap-2 shrink-0">
+                  <div className="flex gap-2 shrink-0 flex-wrap">
                     <button onClick={() => navigate(`/configure/${exam.id}`)} className="px-4 py-2 text-sm rounded-md font-medium transition-colors" style={{ backgroundColor: V.elevated, color: V.textSec, border: `1px solid ${V.border}` }}>Configure</button>
                     {exam.lastSession?.status === 'SUBMITTED' && (
                       <button onClick={() => navigate(`/analysis/${exam.lastSession!.id}`)} className="px-4 py-2 text-sm rounded-md font-medium transition-colors" style={{ backgroundColor: 'var(--t-correct-bg)', color: '#4ade80', border: '1px solid var(--t-correct-border)' }}>View Analysis</button>

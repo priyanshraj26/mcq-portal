@@ -159,7 +159,7 @@ export default function Home() {
           <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 0%, rgba(124,104,240,0.06), transparent 60%)' }} />
         </div>
 
-        <div className="relative w-full max-w-6xl mx-auto px-5 sm:px-8 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="relative w-full max-w-6xl mx-auto px-5 sm:px-8 py-24 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
           {/* Left */}
           <div className="text-center lg:text-left">
             {/* <Reveal>
@@ -204,8 +204,8 @@ export default function Home() {
             </Reveal>
           </div>
 
-          {/* Right — animated card */}
-          <Reveal delay={0.3} className="hidden lg:block">
+          {/* Right — animated card (visible on md+) */}
+          <Reveal delay={0.3} className="hidden md:block">
             <AnimatedCard />
           </Reveal>
         </div>

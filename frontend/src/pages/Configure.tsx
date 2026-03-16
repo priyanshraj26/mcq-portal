@@ -122,7 +122,7 @@ export default function Configure() {
         {/* Timing */}
         <div className="rounded-xl p-6 mb-6" style={card}>
           <h2 className="text-lg font-semibold mb-4" style={{ color: V.text }}>Timing Settings</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1" style={{ color: V.textSec }}>Overall Time Limit (minutes)</label>
               <input type="number" value={overallTimeMins} onChange={(e) => setOverallTimeMins(e.target.value)} className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-core" style={input} placeholder="No limit" min="0" />
@@ -135,9 +135,9 @@ export default function Configure() {
           <div className="mt-4">
             <label className="block text-sm font-medium mb-2" style={{ color: V.textSec }}>Per-Section Time Limits (minutes)</label>
             {sections.map((section, idx) => (
-              <div key={section.id} className="flex items-center gap-3 mb-2">
-                <span className="text-sm w-48 truncate" style={{ color: V.textSec }}>{section.name} ({section.questionCount} Qs)</span>
-                <input type="number" value={section.timeLimitMins} onChange={(e) => { const u = [...sections]; u[idx] = { ...u[idx], timeLimitMins: e.target.value }; setSections(u); }} className="w-32 px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-core" style={input} placeholder="No limit" min="0" />
+              <div key={section.id} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-3">
+                <span className="text-sm w-full sm:w-48 truncate" style={{ color: V.textSec }}>{section.name} ({section.questionCount} Qs)</span>
+                <input type="number" value={section.timeLimitMins} onChange={(e) => { const u = [...sections]; u[idx] = { ...u[idx], timeLimitMins: e.target.value }; setSections(u); }} className="w-full sm:w-32 px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-core" style={input} placeholder="No limit" min="0" />
               </div>
             ))}
           </div>
@@ -146,7 +146,7 @@ export default function Configure() {
         {/* Scoring */}
         <div className="rounded-xl p-6 mb-6" style={card}>
           <h2 className="text-lg font-semibold mb-4" style={{ color: V.text }}>Scoring Settings</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1" style={{ color: V.textSec }}>Marks per Correct Answer</label>
               <input type="number" value={marksPerCorrect} onChange={(e) => setMarksPerCorrect(e.target.value)} className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-core" style={input} step="0.5" min="0" />

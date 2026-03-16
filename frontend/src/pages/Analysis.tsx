@@ -73,7 +73,7 @@ export default function Analysis() {
 
         {/* Summary */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="rounded-xl p-6 col-span-2" style={card}>
+          <div className="rounded-xl p-4 sm:p-6 lg:col-span-2" style={card}>
             <h2 className="text-lg font-semibold mb-4" style={{ color: V.text }}>Score Summary</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {[
@@ -88,7 +88,7 @@ export default function Analysis() {
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mt-6 pt-4" style={{ borderTop: `1px solid ${V.border}` }}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3 mt-6 pt-4" style={{ borderTop: `1px solid ${V.border}` }}>
               {[
                 { v: analysis.totalCorrect, l: 'Correct', c: '#4ade80' }, { v: analysis.totalWrong, l: 'Wrong', c: '#f87171' },
                 { v: analysis.totalSkipped, l: 'Skipped', c: V.textMut }, { v: `+${analysis.positiveMarks}`, l: 'Positive', c: '#4ade80' },
@@ -113,7 +113,7 @@ export default function Analysis() {
         {analysis.sections.length > 1 && (
           <div className="rounded-xl p-6 mb-8" style={card}>
             <h2 className="text-lg font-semibold mb-4" style={{ color: V.text }}>Section-wise Performance</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
                 {analysis.sections.map((s) => (
                   <div key={s.sectionId} className="py-3" style={{ borderBottom: `1px solid ${V.border}` }}>
@@ -155,7 +155,7 @@ export default function Analysis() {
         {/* Question Review */}
         <div className="rounded-xl p-6" style={card}>
           <h2 className="text-lg font-semibold mb-4" style={{ color: V.text }}>Question Review</h2>
-          <div className="flex gap-2 mb-6 flex-wrap">
+          <div className="flex gap-1.5 sm:gap-2 mb-6 flex-wrap">
             {[
               { key: 'all' as const, label: 'All' },
               { key: 'correct' as const, label: `Correct (${analysis.totalCorrect})` },

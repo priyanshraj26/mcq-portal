@@ -106,7 +106,7 @@ export default function Exam() {
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: V.bg }}>
       {/* Header */}
       <header className="px-4 py-3 flex items-center justify-between shadow-sm" style={{ backgroundColor: V.surface, borderBottom: `1px solid ${V.border}` }}>
-        <h1 className="text-lg font-semibold truncate max-w-[300px]" style={{ color: V.text }}>{examTitle}</h1>
+        <h1 className="text-sm sm:text-lg font-semibold truncate max-w-[120px] sm:max-w-[300px]" style={{ color: V.text }}>{examTitle}</h1>
         <TimerBar startedAt={startedAt} totalTimeLimitSecs={settings?.totalTimeLimitSecs ?? null} onTimeUp={handleTimeUp} />
         <div className="flex items-center gap-2">
           <button onClick={() => setShowCalculator(!showCalculator)} className="px-3 py-2 rounded-md text-sm font-medium transition-colors" style={{ backgroundColor: V.btnSecBg, color: V.text, border: `1px solid ${V.border}` }}>Calculator</button>
@@ -126,7 +126,7 @@ export default function Exam() {
 
       {/* Main */}
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="flex-1 p-3 sm:p-6 overflow-y-auto">
           <div className="max-w-3xl">
             <div className="text-sm mb-2" style={{ color: V.textSec }}>{currentSection.name} &middot; Question {currentQuestionIdx + 1} of {currentSection.questions.length}</div>
             <div className="rounded-lg p-6 mb-4" style={{ backgroundColor: V.surface, border: `1px solid ${V.border}` }}>
@@ -137,18 +137,18 @@ export default function Exam() {
               {(currentQuestion.options as string[]).map((opt, idx) => {
                 const sel = currentAnswer?.selectedIndex === idx;
                 return (
-                  <button key={idx} onClick={() => handleSelectOption(idx)} className="w-full text-left p-4 rounded-lg border-2 transition-all flex items-start gap-3"
+                  <button key={idx} onClick={() => handleSelectOption(idx)} className="w-full text-left p-3 sm:p-4 rounded-lg border-2 transition-all flex items-start gap-3"
                     style={{ backgroundColor: sel ? V.optSelBg : V.surface, borderColor: sel ? V.optSelBorder : V.border }}
                     onMouseEnter={(e) => { if (!sel) e.currentTarget.style.backgroundColor = V.optHover; }}
                     onMouseLeave={(e) => { if (!sel) e.currentTarget.style.backgroundColor = V.surface; }}>
-                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 ${sel ? 'bg-violet-core text-white' : ''}`} style={!sel ? { backgroundColor: V.btnSecBg, color: V.textSec } : undefined}>{String.fromCharCode(65 + idx)}</span>
+                    <span className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold shrink-0 ${sel ? 'bg-violet-core text-white' : ''}`} style={!sel ? { backgroundColor: V.btnSecBg, color: V.textSec } : undefined}>{String.fromCharCode(65 + idx)}</span>
                     <span className="pt-1" style={{ color: V.text }}>{opt}</span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-6">
               <button onClick={handleToggleReview} disabled={currentAnswer?.selectedIndex == null}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${currentAnswer?.markedForReview ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : ''} disabled:opacity-50 disabled:cursor-not-allowed`}
                 style={!currentAnswer?.markedForReview ? { backgroundColor: V.btnSecBg, color: V.text, border: `1px solid ${V.border}` } : undefined}>
