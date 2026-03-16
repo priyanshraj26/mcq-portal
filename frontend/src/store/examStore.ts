@@ -10,6 +10,7 @@ export interface ParsedQuestion {
   confidence: number;
   flags: string[];
   pageNumber: number;
+  parsedBy?: 'algorithm' | 'pdfjs' | 'ai-compact' | 'ai-full';
 }
 
 export interface ParsedSection {
@@ -64,6 +65,7 @@ interface ExamStore {
   setUploadResult: (uploadId: string, sections: ParsedSection[]) => void;
   updateParsedQuestion: (sectionIdx: number, questionIdx: number, question: ParsedQuestion) => void;
   deleteParsedQuestion: (sectionIdx: number, questionIdx: number) => void;
+  setSectionQuestions: (sectionIdx: number, questions: ParsedQuestion[]) => void;
 
   // Exam state
   currentExamId: string | null;
@@ -123,6 +125,11 @@ const useExamStore = create<ExamStore>((set, get) => ({
       ...sections[sectionIdx],
       questions: sections[sectionIdx].questions.filter((_, i) => i !== questionIdx),
     };
+    set({ parsedSections: sections });
+  },
+  setSectionQuestions: (sectionIdx, questions) => {
+    const sections = [...get().parsedSections];
+    sections[sectionIdx] = { ...sections[sectionIdx], questions };
     set({ parsedSections: sections });
   },
 

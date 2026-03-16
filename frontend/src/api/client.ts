@@ -7,9 +7,12 @@ export const apiClient = axios.create({
 const api = apiClient;
 
 // Upload APIs
-export const uploadPdfs = async (files: File[]) => {
+export const uploadPdfs = async (files: File[], pageRanges?: Record<number, { from: number; to: number }>) => {
   const formData = new FormData();
   files.forEach((file) => formData.append('files', file));
+  if (pageRanges && Object.keys(pageRanges).length > 0) {
+    formData.append('pageRanges', JSON.stringify(pageRanges));
+  }
   const { data } = await api.post('/upload/pdf', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
@@ -18,6 +21,11 @@ export const uploadPdfs = async (files: File[]) => {
 
 export const confirmUpload = async (body: { uploadId: string; title: string; sections: any[] }) => {
   const { data } = await api.post('/upload/confirm', body);
+  return data;
+};
+
+export const aiParse = async (uploadId: string, sectionIndex: number, mode: 'compact' | 'full') => {
+  const { data } = await api.post(`/upload/${uploadId}/ai-parse`, { sectionIndex, mode });
   return data;
 };
 

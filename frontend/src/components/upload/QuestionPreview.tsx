@@ -19,6 +19,13 @@ const confStyle = (c: number): React.CSSProperties =>
   : c >= 0.75 ? { backgroundColor: 'rgba(251,191,36,0.15)', color: '#fbbf24' }
   : { backgroundColor: 'var(--t-wrong-bg)', color: '#f87171' };
 
+const BADGE_CONFIG: Record<string, { label: string; tooltip: string; bg: string }> = {
+  'algorithm': { label: '1', tooltip: 'Parsed by regex algorithm', bg: '#22c55e' },
+  'pdfjs': { label: '2', tooltip: 'Parsed by pdfjs-dist (positional)', bg: '#3b82f6' },
+  'ai-compact': { label: 'AI', tooltip: 'Parsed by AI (compact mode)', bg: '#7c68f0' },
+  'ai-full': { label: 'AI', tooltip: 'Parsed by AI (full PDF mode)', bg: '#6d28d9' },
+};
+
 export default function QuestionPreview({ question, onUpdate, onDelete }: Props) {
   const [editing, setEditing] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -59,6 +66,13 @@ export default function QuestionPreview({ question, onUpdate, onDelete }: Props)
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-sm font-semibold shrink-0" style={{ color: V.textMut }}>Q{question.questionNumber}</span>
           <span className="text-xs px-2 py-0.5 rounded shrink-0" style={confStyle(question.confidence)}>{Math.round(question.confidence * 100)}%</span>
+          {question.parsedBy && BADGE_CONFIG[question.parsedBy] && (
+            <span title={BADGE_CONFIG[question.parsedBy].tooltip}
+              className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold text-white shrink-0 cursor-help"
+              style={{ backgroundColor: BADGE_CONFIG[question.parsedBy].bg }}>
+              {BADGE_CONFIG[question.parsedBy].label}
+            </span>
+          )}
           {question.flags.map((flag, i) => (
             <span key={i} className="text-xs px-2 py-0.5 rounded shrink-0" style={{ backgroundColor: 'rgba(251,191,36,0.15)', color: '#fbbf24' }}>{flag.replace(/_/g, ' ')}</span>
           ))}

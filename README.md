@@ -5,7 +5,8 @@ A full-stack web application for uploading PDF exam papers, parsing multiple-cho
 ## Features
 
 - **Google Authentication** - Sign in with Google via Clerk. Each user's exams, sessions, and results are fully isolated.
-- **PDF Upload & Parsing** - Upload one or more PDFs containing MCQs. The parser auto-detects multiple question formats (numbered, inline, tabular, answer-key-at-end) and extracts questions with confidence scoring.
+- **3-Layer PDF Parsing** - Upload one or more PDFs containing MCQs. The parser uses a three-layer pipeline: (1) regex algorithm, (2) pdfjs-dist positional analysis for low-confidence questions, (3) optional Gemini 2.5 Flash AI parsing for difficult PDFs. Each question shows which parser produced it.
+- **40-Page PDF Support** - PDFs over 40 pages prompt you to select a page range. Client-side page count detection for instant feedback.
 - **Question Review** - Preview parsed questions with confidence badges in a collapsible card UI. Edit, delete, or fix flagged questions before creating an exam.
 - **Exam Configuration** - Set time limits (overall, per-section, per-question), scoring (marks per correct, negative marking), navigation rules, and question/option shuffling.
 - **Exam Interface** - Full-featured exam UI with countdown timer, question navigation grid, section tabs, mark-for-review, built-in calculator, autosave, and back-button protection.
@@ -24,7 +25,7 @@ A full-stack web application for uploading PDF exam papers, parsing multiple-cho
 | Auth | Clerk (Google OAuth) |
 | Backend | Node.js + Express 5 + TypeScript |
 | Database | PostgreSQL (Neon) + Prisma ORM 7 |
-| PDF Parsing | pdf-parse (in-memory) |
+| PDF Parsing | pdf-parse + pdfjs-dist + Gemini 2.5 Flash (3-layer) |
 | Hosting | Vercel (frontend) + Render (backend) |
 
 ## Architecture
@@ -39,7 +40,8 @@ Browser
   |
   |   API calls          -> Render (Node/Express)
   |                            |
-  |                            |-- Parse PDF in memory (pdf-parse)
+  |                            |-- Parse PDF: Layer 1 (regex) + Layer 2 (pdfjs-dist)
+  |                            |-- Optional: Layer 3 (Gemini 2.5 Flash AI)
   |                            |-- Read/write data -> Neon (PostgreSQL)
 ```
 
@@ -50,6 +52,7 @@ Browser
 - Node.js 18+
 - A [Clerk](https://clerk.com) account (free tier)
 - A [Neon](https://neon.tech) PostgreSQL database (free tier), or any PostgreSQL instance
+- A [Google AI Studio](https://aistudio.google.com) API key (free tier, for AI parsing — optional)
 
 ### Setup
 
@@ -88,6 +91,7 @@ DATABASE_URL=postgresql://user:password@localhost:5432/mcqportal
 CLERK_SECRET_KEY=sk_test_xxxxxxxxxxxx
 CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxx
 FRONTEND_URL=http://localhost:5173
+GEMINI_API_KEY=AIzaSy...
 PORT=3001
 ```
 
@@ -100,8 +104,8 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxx
 ## Usage
 
 1. **Sign In** - Click "Start a Test" and sign in with your Google account
-2. **Upload** - Drag and drop PDF files containing MCQs
-3. **Review** - Check parsed questions, fix any flagged ones
+2. **Upload** - Drag and drop PDF files containing MCQs (40-page limit per PDF, page range selector for larger files)
+3. **Review** - Check parsed questions, use AI Parser buttons for difficult PDFs, fix any flagged ones
 4. **Configure** - Set timer, scoring, and navigation options
 5. **Take Exam** - Answer questions with full exam controls
 6. **Analyze** - Review detailed performance metrics and charts
@@ -113,6 +117,8 @@ The app is designed to deploy on free tiers:
 - **Frontend** -> [Vercel](https://vercel.com) (set root directory to `frontend`)
 - **Backend** -> [Render](https://render.com) (set root directory to `backend`, start command: `npm run start:migrate`)
 - **Database** -> [Neon](https://neon.tech) (free PostgreSQL)
+
+Add `GEMINI_API_KEY` to Render environment variables for AI parsing in production.
 
 See `DEPLOY_AUTH_SPEC.md` for detailed deployment instructions.
 
@@ -127,7 +133,7 @@ MCQ-portal/
 ├── backend/
 │   ├── src/
 │   │   ├── routes/          # API endpoints (upload, exam, session, analysis)
-│   │   ├── services/        # PDF parsing, question extraction, analysis engine
+│   │   ├── services/        # 3-layer PDF parsing (regex, pdfjs, Gemini AI), analysis engine
 │   │   ├── middleware/       # Clerk auth middleware
 │   │   ├── lib/             # Prisma client
 │   │   └── prisma/          # Schema + migrations

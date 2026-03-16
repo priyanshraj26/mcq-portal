@@ -11,6 +11,7 @@ export interface ParsedQuestion {
   confidence: number;
   flags: string[];
   pageNumber: number;
+  parsedBy: 'algorithm' | 'pdfjs' | 'ai-compact' | 'ai-full';
 }
 
 export interface ParsedSection {
@@ -146,6 +147,7 @@ function parseTabularFormat(lines: string[], pageNumber: number): ParsedQuestion
       confidence: correctIndex >= 0 ? 0.85 : 0.5,
       flags: correctIndex < 0 ? ['answer_parse_failed'] : [],
       pageNumber,
+      parsedBy: 'algorithm',
     });
   }
 
@@ -353,8 +355,31 @@ function blocksToQuestions(blocks: RawBlock[], answerKey: Map<number, number>): 
       confidence,
       flags,
       pageNumber: block.pageNumber,
+      parsedBy: 'algorithm',
     };
   });
+}
+
+// --- Reusable text-to-questions extractor (used by pdfjsParser) ---
+
+export function extractQuestionsFromText(text: string): ParsedQuestion[] {
+  const lines = text.split('\n').filter(l => l.trim());
+  const allLines = lines.map((line, i) => ({ text: line, page: 1 }));
+
+  if (allLines.length === 0) return [];
+
+  // Check tabular
+  const hasTable = allLines.some(({ text }) => TABLE_ROW_PATTERN.test(text));
+  if (hasTable) {
+    const tableQuestions = parseTabularFormat(lines, 1);
+    if (tableQuestions.length > 0) return tableQuestions;
+  }
+
+  const answerKey = parseAnswerKey(lines);
+  const blocks = extractBlocks(allLines);
+  if (blocks.length === 0) return [];
+
+  return blocksToQuestions(blocks, answerKey);
 }
 
 // --- Main Export ---
