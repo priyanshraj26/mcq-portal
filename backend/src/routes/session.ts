@@ -35,19 +35,28 @@ router.post('/start', requireAuth, async (req: Request, res: Response) => {
       questions: exam.settings?.shuffleQuestions ? shuffleArray(s.questions) : s.questions,
     }));
 
-    if (exam.settings?.shuffleOptions) {
+    const didShuffleOptions = !!exam.settings?.shuffleOptions;
+
+    if (didShuffleOptions) {
       sections = sections.map((s) => ({
         ...s,
         questions: s.questions.map((q) => {
           const indices = (q.options as string[]).map((_: string, i: number) => i);
           const shuffled = shuffleArray(indices);
-          return { ...q, options: shuffled.map((i: number) => (q.options as string[])[i]), correctAnswerIndex: shuffled.indexOf(q.correctAnswerIndex) };
+          const shuffledOptions = shuffled.map((i: number) => (q.options as string[])[i]);
+          const shuffledCorrectIndex = shuffled.indexOf(q.correctAnswerIndex);
+          return { ...q, options: shuffledOptions, correctAnswerIndex: shuffledCorrectIndex, _shuffledOptions: shuffledOptions, _shuffledCorrectIndex: shuffledCorrectIndex };
         }),
       }));
     }
 
     await prisma.answer.createMany({
-      data: sections.flatMap((s) => s.questions).map((q) => ({ sessionId: session.id, questionId: q.id })),
+      data: sections.flatMap((s) => s.questions).map((q: any) => ({
+        sessionId: session.id,
+        questionId: q.id,
+        shuffledOptions: didShuffleOptions ? q._shuffledOptions : null,
+        shuffledCorrectIndex: didShuffleOptions ? q._shuffledCorrectIndex : null,
+      })),
     });
 
     res.json({ sessionId: session.id, exam: { ...exam, sections }, startedAt: session.startedAt });

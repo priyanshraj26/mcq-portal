@@ -75,14 +75,16 @@ enum SessionStatus {
 }
 
 model Answer {
-  id              String      @id @default(uuid())
-  sessionId       String
-  session         ExamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  questionId      String
-  question        Question    @relation(fields: [questionId], references: [id])
-  selectedIndex   Int?
-  markedForReview Boolean     @default(false)
-  isCompleted     Boolean     @default(false)
-  timeTakenSecs   Int?
-  visitCount      Int         @default(0)
+  id                    String      @id @default(uuid())
+  sessionId             String
+  session               ExamSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionId            String
+  question              Question    @relation(fields: [questionId], references: [id])
+  selectedIndex         Int?
+  markedForReview       Boolean     @default(false)
+  isCompleted           Boolean     @default(false)
+  timeTakenSecs         Int?
+  visitCount            Int         @default(0)
+  shuffledOptions       Json?       // string[] - the option order shown to user (null if no shuffle)
+  shuffledCorrectIndex  Int?        // correct answer index in the shuffled order (null if no shuffle)
 }

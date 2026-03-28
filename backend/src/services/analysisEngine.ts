@@ -96,14 +96,27 @@ export async function generateAnalysis(sessionId: string): Promise<ExamAnalysis>
       const answer = answerMap.get(question.id);
       const selectedIndex = answer?.selectedIndex ?? null;
       const isSkipped = selectedIndex === null;
-      const isCorrect = !isSkipped && selectedIndex === question.correctAnswerIndex;
+
+      // If options were shuffled, use the shuffled correct index stored on the answer.
+      // The selectedIndex was recorded against the shuffled option order,
+      // so we must compare it against the shuffled correct index.
+      const effectiveCorrectIndex = answer?.shuffledCorrectIndex !== null && answer?.shuffledCorrectIndex !== undefined
+        ? answer.shuffledCorrectIndex
+        : question.correctAnswerIndex;
+
+      // For display: use shuffled options if they exist, otherwise original
+      const effectiveOptions = answer?.shuffledOptions
+        ? answer.shuffledOptions as string[]
+        : question.options as string[];
+
+      const isCorrect = !isSkipped && selectedIndex === effectiveCorrectIndex;
 
       questionAnalyses.push({
         questionId: question.id,
         questionNumber: qNum,
         questionText: question.questionText,
-        options: question.options as string[],
-        correctAnswerIndex: question.correctAnswerIndex,
+        options: effectiveOptions,
+        correctAnswerIndex: effectiveCorrectIndex,
         selectedIndex,
         isCorrect,
         isSkipped,
